@@ -4,6 +4,7 @@
 Command line tool to change the keymap of "[C4NDY KeyVLM](https://github.com/yamamo2shun1/C4NDY)".
 
 ## How to use
+Download the latest version from [here](https://github.com/yamamo2shun1/KeyVLM_Configurator/releases) and run it from Command Prompt (Windows) or Terminal.app (macOS).
 ```
 > vlmconfig.exe ver                  // Show the version of the tool installed
 > vlmconfig.exe check                // Show information on C4NDY KeyVLM connected to PC/Mac
