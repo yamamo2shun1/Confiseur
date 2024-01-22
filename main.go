@@ -1,11 +1,12 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
-	"os"
 
 	"github.com/BurntSushi/toml"
 	"github.com/sstallion/go-hid"
@@ -228,57 +229,7 @@ func GetSettingPath() string {
 	return path
 }
 
-func writeKeymap(val byte) {
-	for i := 0; i < 5; i++ {
-		remapRow[0] = 0x00
-		remapRow[1] = 0xF0 + byte(i)
-		remapRow[2] = val
-		for j := 0; j < 13; j++ {
-			if val == 0x01 {
-				remapRow[j+3] = SC[layouts.Layout1.Rows[i][j]]
-			} else if val == 0x02 {
-				remapRow[j+3] = SC[layouts.Layout2.Rows[i][j]]
-			}
-		}
-
-		if _, err := d.Write(remapRow); err != nil {
-			log.Fatal(err)
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
-}
-
-func saveToFlash() {
-	remapRow[0] = 0x00
-	remapRow[1] = 0xF5
-	if _, err := d.Write(remapRow); err != nil {
-		log.Fatal(err)
-	}
-	time.Sleep(100 * time.Millisecond)
-
-	if _, err := d.Read(remapRow); err != nil {
-		log.Fatal(err)
-	}
-	if remapRow[1] == 0xF5 {
-		fmt.Println("Finish.");
-	}
-}
-
-func main() {
-	fmt.Println("hello Configurator v0.1!")
-	fmt.Println("")
-
-	// Initialize the hid package.
-	if err := hid.Init(); err != nil {
-		log.Fatal(err)
-	}
-
-	// Open the device using the VID and PID.
-	d, err = hid.OpenPath(GetSettingPath())
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func checkHid() {
 	// Read the Manufacturer String.
 	s, err := d.GetMfrStr()
 	if err != nil {
@@ -306,14 +257,13 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Printf("Indexed String 1: %s\n", s)
+}
 
-	// check current hardware layout
-	fmt.Println("")
-	fmt.Println("--- Current Hardware Layout ScanCode ---")
+func loadKeymap(val byte) {
 	for i := 0; i < 5; i++ {
 		remapRow[0] = 0x00
 		remapRow[1] = 0xF0 + byte(i)
-		remapRow[2] = 0x00
+		remapRow[2] = val
 		if _, err := d.Write(remapRow); err != nil {
 			log.Fatal(err)
 		}
@@ -330,11 +280,35 @@ func main() {
 		}
 		fmt.Println("]")
 	}
+}
 
-	fmt.Println("")
+func writeKeymap(val byte) {
+	for i := 0; i < 5; i++ {
+		remapRow[0] = 0x00
+		remapRow[1] = 0xF0 + byte(i)
+		remapRow[2] = val
+		for j := 0; j < 13; j++ {
+			if val == 0x01 {
+				remapRow[j+3] = SC[layouts.Layout1.Rows[i][j]]
+			} else if val == 0x02 {
+				remapRow[j+3] = SC[layouts.Layout2.Rows[i][j]]
+			}
+		}
+
+		if _, err := d.Write(remapRow); err != nil {
+			log.Fatal(err)
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+func remap() {
 	fmt.Println("-- Remap Layout ScanCode ---")
 
-	_, err = toml.DecodeFile(os.Args[1], &layouts)
+	inputfile := flag.String("f", "layouts.toml", "flag for input .toml file.")
+	flag.Parse()
+
+	_, err = toml.DecodeFile(*inputfile, &layouts)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -346,7 +320,13 @@ func main() {
 	for i := 0; i < 5; i++ {
 		fmt.Print("[ ")
 		for j := 0; j < 13; j++ {
-			fmt.Printf("0x%02X ", SC[layouts.Layout1.Rows[i][j]])
+			if SC[layouts.Layout1.Rows[i][j]] == 0x00 {
+				if err := hid.Exit(); err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				fmt.Printf("0x%02X ", SC[layouts.Layout1.Rows[i][j]])
+			}
 		}
 		fmt.Println("]")
 	}
@@ -366,25 +346,66 @@ func main() {
 		fmt.Println("]")
 	}
 	fmt.Println("")
+}
 
-	switch os.Args[2] {
-	case "layout1":
-		fmt.Println("remap layout1")
+func saveToFlash() {
+	remapRow[0] = 0x00
+	remapRow[1] = 0xF5
+	if _, err := d.Write(remapRow); err != nil {
+		log.Fatal(err)
+	}
+	time.Sleep(100 * time.Millisecond)
 
-		writeKeymap(0x01)
-	case "layout2":
-		fmt.Println("remap layout2")
+	if _, err := d.Read(remapRow); err != nil {
+		log.Fatal(err)
+	}
+	if remapRow[1] == 0xF5 {
+		fmt.Println("Finish.")
+	}
+}
 
-		writeKeymap(0x02)
-	case "all":
+func main() {
+	// Initialize the hid package.
+	if err := hid.Init(); err != nil {
+		log.Fatal(err)
+	}
+
+	// Open the device using the VID and PID.
+	d, err = hid.OpenPath(GetSettingPath())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	switch os.Args[1] {
+	case "check":
+		checkHid()
+		fmt.Println("")
+	case "load":
+		// check current hardware layout
+		fmt.Println("--- Current Hardware Layout ScanCode ---")
+		fmt.Println("::Layout1::")
+		loadKeymap(0x03)
+		fmt.Println("")
+		fmt.Println("::Layout2::")
+		loadKeymap(0x04)
+		fmt.Println("")
+	case "remap":
+		remap()
+
 		fmt.Println("remap layout1&2")
 
 		writeKeymap(0x01)
 		writeKeymap(0x02)
+		fmt.Println("")
 	case "save":
 		saveToFlash()
+		fmt.Println("")
+	case "ver":
+		fmt.Println("C4NDY KeyVLM Configurator v0.2!")
+		fmt.Println("")
+	default:
 	}
-	
+
 	time.Sleep(100 * time.Millisecond)
 
 	// Finalize the hid package.
