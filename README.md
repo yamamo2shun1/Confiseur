@@ -1,16 +1,16 @@
 # KeyVLM_Configurator
 
 ## Description
-C4NDY KeyVLMのキーマップを変更するためのコマンドラインツールです。
+Command line tool to change the keymap of "[C4NDY KeyVLM](https://github.com/yamamo2shun1/C4NDY)".
 
 ## How to use
 ```
-> vlmconfig.exe ver                  // インストールされているツールのバージョンを表示します
-> vlmconfig.exe check                // PC/Macに接続しているC4NDY KeyVLMの情報を表示します
-> vlmconfig.exe load                 // キーボードの現在のキーマップを表示します
-> vlmconfig.exe remap                // キーボードにlayouts.tomlで設定したキーマップを書き込みます
-> vlmconfig.exe remap -f custom.toml // キードードに指定のtomlで設定したキーマップを書き込みます
-> vlmconfig.exe save                 // remapで書き込んだキーマップをメモリ領域に保存します
+> vlmconfig.exe ver                  // Show the version of the tool installed
+> vlmconfig.exe check                // Show information on C4NDY KeyVLM connected to PC/Mac
+> vlmconfig.exe load                 // Show the current keymap(ScanCode) of the keyboard
+> vlmconfig.exe remap                // Write the keyboard with the keymap set in layouts.toml
+> vlmconfig.exe remap -f custom.toml // Write the keymap set in the specified .toml to the keydoad
+> vlmconfig.exe save                 // Save the keymap written by "remap" to the memory area
 ```
 
 ## How to build from Source Code
