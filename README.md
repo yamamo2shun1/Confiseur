@@ -14,7 +14,8 @@ Command line tool to change the keymap of "[C4NDY KeyVLM](https://github.com/yam
 ```
 
 ## Preparation to build
-Because we are using [go-hid](https://github.com/sstallion/go-hid), some preparation is required to build the code.
+First, install the [Go language](https://go.dev/) development environment.  
+Some preparation is required to build the code because we are using [go-hid](https://github.com/sstallion/go-hid).
 
 ### for Windows
 Add "CGO_ENABLED=1" to the environment variable and install a C compiler such as [TDM-GCC](https://jmeubank.github.io/tdm-gcc/) beforehand.
