@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"text/tabwriter"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -70,6 +71,8 @@ func checkHid() {
 }
 
 func loadKeymap(val byte) {
+	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+
 	for i := 0; i < 5; i++ {
 		remapRow[0] = 0x00
 		remapRow[1] = 0xF0 + byte(i)
@@ -84,12 +87,13 @@ func loadKeymap(val byte) {
 		}
 		time.Sleep(100 * time.Millisecond)
 
-		fmt.Print("[ ")
+		fmt.Fprint(w, "[\t")
 		for j := 0; j < 13; j++ {
-			fmt.Printf("0x%02X ", remapRow[j])
+			fmt.Fprintf(w, "%s\t", KN[remapRow[j]])
 		}
-		fmt.Println("]")
+		fmt.Fprintln(w, "]\t")
 	}
+	w.Flush()
 }
 
 func writeKeymap(val byte) {
@@ -191,6 +195,8 @@ func main() {
 		checkHid()
 		fmt.Println("")
 	case "load":
+		initKN()
+
 		// check current hardware layout
 		fmt.Println("--- Current Hardware Layout ScanCode ---")
 		fmt.Println("::Layout1::")
@@ -211,7 +217,7 @@ func main() {
 		saveToFlash()
 		fmt.Println("")
 	case "ver":
-		fmt.Println("C4NDY KeyVLM Configurator v0.2!")
+		fmt.Println("C4NDY KeyVLM Configurator v0.3!")
 		fmt.Println("")
 	default:
 	}

@@ -189,3 +189,11 @@ var SC = map[string]byte{
 	"LNPH":        0xFE, // Line Phono Switch
 	"LAYOUT":      0xFF, // Layout Switch
 }
+
+var KN = make(map[byte]string)
+
+func initKN() {
+	for key, value := range SC {
+		KN[value] = key
+	}
+}
