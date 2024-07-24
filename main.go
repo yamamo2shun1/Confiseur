@@ -334,7 +334,7 @@ func main() {
 		saveToFlash()
 		fmt.Println("")
 	} else if *verFlag {
-		fmt.Println("C4NDY KeyConfigurator v0.4!")
+		fmt.Println("C4NDY KeyConfigurator v1.0!")
 		fmt.Println("")
 	}
 
