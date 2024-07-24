@@ -1,13 +1,13 @@
-# KeyVLM_Configurator
+# KeyConfigurator
 
 ## Description
-Command line tool to change the keymap of "[C4NDY KeyVLM](https://github.com/yamamo2shun1/C4NDY)".
+Command line tool to change the keymap of "[C4NDY KeyVLM and STK](https://github.com/yamamo2shun1/C4NDY)".
 
 ## How to use
-Download the latest version from [here](https://github.com/yamamo2shun1/KeyVLM_Configurator/releases) and run it from Command Prompt (Windows) or Terminal.app (macOS).
+Download the latest version from [here](https://github.com/yamamo2shun1/KeyConfigurator/releases) and run it from Command Prompt (Windows) or Terminal.app (macOS).
 ```
 > vlmconfig ver                  // Show the version of the tool installed
-> vlmconfig check                // Show information on C4NDY KeyVLM connected to PC/Mac
+> vlmconfig check                // Show information on C4NDY KeyVLM/STK connected to PC/Mac
 > vlmconfig load                 // Show the current key names of the keyboard
 > vlmconfig remap                // Write the keyboard with the keymap set in layouts.toml
 > vlmconfig remap -f custom.toml // Write the keymap set in the specified .toml to the keydoad
