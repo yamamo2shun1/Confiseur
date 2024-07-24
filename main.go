@@ -36,7 +36,7 @@ func GetSettingPath() string {
 	path := "nopath"
 
 	hid.Enumerate(hid.VendorIDAny, hid.ProductIDAny, func(info *hid.DeviceInfo) error {
-		if strings.Contains(info.ProductStr, "Setting") {
+		if strings.Contains(info.ProductStr, "C4NDY") && info.Usage == 1 {
 			path = info.Path
 		}
 		return nil
