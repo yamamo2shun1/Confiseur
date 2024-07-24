@@ -6,12 +6,12 @@ Command line tool to change the keymap of "[C4NDY KeyVLM and STK](https://github
 ## How to use
 Download the latest version from [here](https://github.com/yamamo2shun1/KeyConfigurator/releases) and run it from Command Prompt (Windows) or Terminal.app (macOS).
 ```
-> vlmconfig ver                  // Show the version of the tool installed
-> vlmconfig check                // Show information on C4NDY KeyVLM/STK connected to PC/Mac
-> vlmconfig load                 // Show the current key names of the keyboard
-> vlmconfig remap                // Write the keyboard with the keymap set in layouts.toml
-> vlmconfig remap -f custom.toml // Write the keymap set in the specified .toml to the keydoad
-> vlmconfig save                 // Save the keymap written by "remap" to the memory area
+> keyconfig -version                 // Show the version of the tool installed
+> keyconfig -check                   // Show information on C4NDY KeyVLM/STK connected to PC/Mac
+> keyconfig -load                    // Show the current key names of the keyboard
+> keyconfig -remap                   // Write the keyboard with the keymap set in layouts.toml
+> keyconfig -remap -file custom.toml // Write the keymap set in the specified .toml to the keydoad
+> keyconfig -save                    // Save the keymap written by "remap" to the memory area
 ```
 
 ## Preparation to build
@@ -26,5 +26,5 @@ Add "CGO_ENABLED=1" to your shell configuration file, such as .zshrc.
 
 ## How to build from Source Code
 ```
-> go build -o vlmconfig
+> go build -o keyconfig
 ```
