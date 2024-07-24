@@ -132,13 +132,10 @@ func writeKeymap(val byte) {
 	}
 }
 
-func remap() {
+func remap(inputfile string) {
 	fmt.Println("-- Remap Layout ScanCode ---")
 
-	inputfile := flag.String("f", "layouts.toml", "flag for input .toml file.")
-	flag.Parse()
-
-	_, err = toml.DecodeFile(*inputfile, &layouts)
+	_, err = toml.DecodeFile(inputfile, &layouts)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -248,22 +245,19 @@ func main() {
 		maxColumns = 10
 	}
 
-	switch os.Args[1] {
-	case "check":
+	checkFlag := flag.Bool("check", false, "Show information on C4NDY KeyVLM/STK connected to PC/Mac.")
+	loadFlag := flag.Bool("load", false, "Show the current key names of the keyboard.")
+	remapFlag := flag.Bool("remap", false, "Write the keyboard with the keymap set in layouts.toml.")
+	saveFlag := flag.Bool("save", false, "Save the keymap written by \"-remap\" to the memory area.")
+	verFlag := flag.Bool("version", false, "Show the version of the tool installed.")
+	inputfile := flag.String("file", "layouts.toml", "Write the keymap set in the specified .toml to the keyboard.")
+
+	flag.Parse()
+
+	if *checkFlag {
 		checkHid()
 		fmt.Println("")
-	case "help":
-		fmt.Println("META OPTIONS")
-		fmt.Println("  help     Display this information.")
-		fmt.Println("  ver      Show the version of the tool installed.")
-		fmt.Println("  check    Show information on C4NDY KeyVLM/STK connected to PC/Mac.")
-		fmt.Println("  load     Show the current key names of the keyboard.")
-		fmt.Println("  remap    Write the keyboard with the keymap set in layouts.toml.")
-		fmt.Println("  remap -f <file>")
-		fmt.Println("           Write the keymap set in the specified .toml to the keydoad.")
-		fmt.Println("  save     Save the keymap written by \"-r or --remap\" to the memory area.")
-		fmt.Println("")
-	case "load":
+	} else if *loadFlag {
 		initKN()
 
 		// check current hardware layout
@@ -280,8 +274,8 @@ func main() {
 		fmt.Println("  Upper ->")
 		loadKeymap(0x08)
 		fmt.Println("")
-	case "remap":
-		remap()
+	} else if *remapFlag {
+		remap(*inputfile)
 
 		fmt.Println("remap layout1&2(Normal/Upper)")
 
@@ -290,15 +284,66 @@ func main() {
 		writeKeymap(0x03)
 		writeKeymap(0x04)
 		fmt.Println("")
-	case "save":
+	} else if *saveFlag {
 		saveToFlash()
 		fmt.Println("")
-	case "ver":
+	} else if *verFlag {
 		fmt.Println("C4NDY KeyConfigurator v0.4!")
 		fmt.Println("")
-	default:
 	}
 
+	/*
+		switch os.Args[1] {
+		case "check":
+			checkHid()
+			fmt.Println("")
+		case "help":
+			fmt.Println("META OPTIONS")
+			fmt.Println("  help     Display this information.")
+			fmt.Println("  ver      Show the version of the tool installed.")
+			fmt.Println("  check    Show information on C4NDY KeyVLM/STK connected to PC/Mac.")
+			fmt.Println("  load     Show the current key names of the keyboard.")
+			fmt.Println("  remap    Write the keyboard with the keymap set in layouts.toml.")
+			fmt.Println("  remap -f <file>")
+			fmt.Println("           Write the keymap set in the specified .toml to the keydoad.")
+			fmt.Println("  save     Save the keymap written by \"-r or --remap\" to the memory area.")
+			fmt.Println("")
+		case "load":
+			initKN()
+
+			// check current hardware layout
+			fmt.Println("--- Current Hardware Layout ScanCode ---")
+			fmt.Println("::Layout1::")
+			fmt.Println("  Normal ->")
+			loadKeymap(0x05)
+			fmt.Println("  Upper ->")
+			loadKeymap(0x06)
+			fmt.Println("")
+			fmt.Println("::Layout2::")
+			fmt.Println("  Normal ->")
+			loadKeymap(0x07)
+			fmt.Println("  Upper ->")
+			loadKeymap(0x08)
+			fmt.Println("")
+		case "remap":
+			remap()
+
+			fmt.Println("remap layout1&2(Normal/Upper)")
+
+			writeKeymap(0x01)
+			writeKeymap(0x02)
+			writeKeymap(0x03)
+			writeKeymap(0x04)
+			fmt.Println("")
+		case "save":
+			saveToFlash()
+			fmt.Println("")
+		case "ver":
+			fmt.Println("C4NDY KeyConfigurator v0.4!")
+			fmt.Println("")
+		default:
+		}
+	*/
 	time.Sleep(100 * time.Millisecond)
 
 	// Finalize the hid package.
