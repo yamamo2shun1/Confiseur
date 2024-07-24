@@ -89,7 +89,7 @@
 # "R_Shift",     // Right Shift
 # "R_Alt",       // Right Alt
 # "R_Gui",       // Right GUI
-
+# "Null"
 [layout1]
 	normal = [
 		["Q",    "W",    "E",      "R",    "T",       "Y",    "U",    "I",     "O",      "P"],
