@@ -21,6 +21,7 @@ type Layouts struct {
 type Layout struct {
 	Normal [][]string `toml:"normal"`
 	Upper  [][]string `toml:"upper"`
+	Stick  [][]string `toml:"stick"`
 }
 
 var err error
@@ -85,6 +86,9 @@ func loadKeymap(val byte) {
 	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
 
 	for i := 0; i < maxRows; i++ {
+		if (val == 0x09 || val == 0x0C) && i > 1 {
+			continue
+		}
 		remapRows[0] = 0x00
 		remapRows[1] = 0xF0 + byte(i)
 		remapRows[2] = val
@@ -109,19 +113,31 @@ func loadKeymap(val byte) {
 
 func writeKeymap(val byte) {
 	for i := 0; i < maxRows; i++ {
+		if (val == 0x03 || val == 0x06) && i > 1 {
+			continue
+		}
+
 		remapRows[0] = 0x00
 		remapRows[1] = 0xF0 + byte(i)
 		remapRows[2] = val
 		for j := 0; j < maxColumns; j++ {
+			if (val == 0x03 || val == 0x06) && j > 3 {
+				continue
+			}
+
 			switch val {
 			case 0x01:
 				remapRows[j+3] = SC[layouts.Layout1.Normal[i][j]]
 			case 0x02:
 				remapRows[j+3] = SC[layouts.Layout1.Upper[i][j]]
 			case 0x03:
-				remapRows[j+3] = SC[layouts.Layout2.Normal[i][j]]
+				remapRows[j+3] = SC[layouts.Layout1.Stick[i][j]]
 			case 0x04:
+				remapRows[j+3] = SC[layouts.Layout2.Normal[i][j]]
+			case 0x05:
 				remapRows[j+3] = SC[layouts.Layout2.Upper[i][j]]
+			case 0x06:
+				remapRows[j+3] = SC[layouts.Layout2.Stick[i][j]]
 			}
 		}
 
@@ -139,8 +155,6 @@ func remap(inputfile string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println(layouts)
 
 	fmt.Println("::Layout1::")
 	fmt.Println("  Normal ->")
@@ -177,8 +191,23 @@ func remap(inputfile string) {
 		}
 		fmt.Println("]")
 	}
-	fmt.Println("")
-
+	fmt.Println("  Stick ->")
+	for i := 0; i < 2; i++ {
+		fmt.Println(layouts.Layout1.Stick[i])
+	}
+	for i := 0; i < 2; i++ {
+		fmt.Print("[ ")
+		for j := 0; j < 4; j++ {
+			if SC[layouts.Layout1.Stick[i][j]] == 0x00 {
+				if err := hid.Exit(); err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				fmt.Printf("0x%02X ", SC[layouts.Layout1.Stick[i][j]])
+			}
+		}
+		fmt.Println("]")
+	}
 	fmt.Println("")
 	fmt.Println("::Layout2::")
 	fmt.Println("  Normal ->")
@@ -200,6 +229,17 @@ func remap(inputfile string) {
 		fmt.Print("[ ")
 		for j := 0; j < maxColumns; j++ {
 			fmt.Printf("0x%02X ", SC[layouts.Layout2.Upper[i][j]])
+		}
+		fmt.Println("]")
+	}
+	fmt.Println("  Stick ->")
+	for i := 0; i < 2; i++ {
+		fmt.Println(layouts.Layout2.Stick[i])
+	}
+	for i := 0; i < 2; i++ {
+		fmt.Print("[ ")
+		for j := 0; j < 4; j++ {
+			fmt.Printf("0x%02X ", SC[layouts.Layout2.Stick[i][j]])
 		}
 		fmt.Println("]")
 	}
@@ -264,15 +304,19 @@ func main() {
 		fmt.Println("--- Current Hardware Layout ScanCode ---")
 		fmt.Println("::Layout1::")
 		fmt.Println("  Normal ->")
-		loadKeymap(0x05)
-		fmt.Println("  Upper ->")
-		loadKeymap(0x06)
-		fmt.Println("")
-		fmt.Println("::Layout2::")
-		fmt.Println("  Normal ->")
 		loadKeymap(0x07)
 		fmt.Println("  Upper ->")
 		loadKeymap(0x08)
+		fmt.Println("  Stick ->")
+		loadKeymap(0x09)
+		fmt.Println("")
+		fmt.Println("::Layout2::")
+		fmt.Println("  Normal ->")
+		loadKeymap(0x0A)
+		fmt.Println("  Upper ->")
+		loadKeymap(0x0B)
+		fmt.Println("  Stick ->")
+		loadKeymap(0x0C)
 		fmt.Println("")
 	} else if *remapFlag {
 		remap(*inputfile)
@@ -283,6 +327,8 @@ func main() {
 		writeKeymap(0x02)
 		writeKeymap(0x03)
 		writeKeymap(0x04)
+		writeKeymap(0x05)
+		writeKeymap(0x06)
 		fmt.Println("")
 	} else if *saveFlag {
 		saveToFlash()
@@ -292,58 +338,6 @@ func main() {
 		fmt.Println("")
 	}
 
-	/*
-		switch os.Args[1] {
-		case "check":
-			checkHid()
-			fmt.Println("")
-		case "help":
-			fmt.Println("META OPTIONS")
-			fmt.Println("  help     Display this information.")
-			fmt.Println("  ver      Show the version of the tool installed.")
-			fmt.Println("  check    Show information on C4NDY KeyVLM/STK connected to PC/Mac.")
-			fmt.Println("  load     Show the current key names of the keyboard.")
-			fmt.Println("  remap    Write the keyboard with the keymap set in layouts.toml.")
-			fmt.Println("  remap -f <file>")
-			fmt.Println("           Write the keymap set in the specified .toml to the keydoad.")
-			fmt.Println("  save     Save the keymap written by \"-r or --remap\" to the memory area.")
-			fmt.Println("")
-		case "load":
-			initKN()
-
-			// check current hardware layout
-			fmt.Println("--- Current Hardware Layout ScanCode ---")
-			fmt.Println("::Layout1::")
-			fmt.Println("  Normal ->")
-			loadKeymap(0x05)
-			fmt.Println("  Upper ->")
-			loadKeymap(0x06)
-			fmt.Println("")
-			fmt.Println("::Layout2::")
-			fmt.Println("  Normal ->")
-			loadKeymap(0x07)
-			fmt.Println("  Upper ->")
-			loadKeymap(0x08)
-			fmt.Println("")
-		case "remap":
-			remap()
-
-			fmt.Println("remap layout1&2(Normal/Upper)")
-
-			writeKeymap(0x01)
-			writeKeymap(0x02)
-			writeKeymap(0x03)
-			writeKeymap(0x04)
-			fmt.Println("")
-		case "save":
-			saveToFlash()
-			fmt.Println("")
-		case "ver":
-			fmt.Println("C4NDY KeyConfigurator v0.4!")
-			fmt.Println("")
-		default:
-		}
-	*/
 	time.Sleep(100 * time.Millisecond)
 
 	// Finalize the hid package.

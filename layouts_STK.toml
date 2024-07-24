@@ -89,7 +89,9 @@
 # "R_Shift",     // Right Shift
 # "R_Alt",       // Right Alt
 # "R_Gui",       // Right GUI
+# "Upper",
 # "Null"
+
 [layout1]
 	normal = [
 		["Q",    "W",    "E",      "R",    "T",       "Y",    "U",    "I",     "O",      "P"],
@@ -102,6 +104,10 @@
 		["Q",    "W",         "Null",   "L_Gui", "G",       "Null", "Minus",      "Equal", "O_SBracket", "Apostrophe"],
 		["Null", "R_Control", "Null",   "Null",  "Null",    "Null", "C_SBracket", "Null",  "Null",       "Yen"],
 		["Null", "LNPH",      "LAYOUT", "Null",  "L_Shift", "Null", "Null",       "Null",  "Null",       "Backquote"]
+	]
+	stick = [
+		["BS", "Tab", "Upper", "CapsLock"],
+		["Esc", "Henkan", "R_Alt", "Space"]
 	]
 
 [layout2]
@@ -116,5 +122,9 @@
 		["Apostrophe", "Comma",    "Null",   "L_Gui", "Period",  "Null", "O_SBracket", "C_SBracket", "Slash", "Minus"],
 		["Null",       "CapsLock", "Null",   "Null",  "Null",    "Null", "Equal",      "Null",       "Null",  "Backslash"],
 		["Null",       "LNPH",     "LAYOUT", "Null",  "L_Shift", "Null", "Null",       "Null",       "Null",  "Backquote"]
+	]
+	stick = [
+		["BS", "Tab", "Upper", "L_Control"],
+		["Esc", "Space", "R_Alt", "Enter"]
 	]
 
