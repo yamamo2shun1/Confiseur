@@ -31,6 +31,7 @@ var remapRows []byte = make([]byte, 16)
 
 var maxRows = 5
 var maxColumns = 13
+var isStk = false
 
 func GetSettingPath() string {
 	path := "nopath"
@@ -281,6 +282,7 @@ func main() {
 	}
 
 	if strings.Contains(s, "C4NDY STK") {
+		isStk = true
 		maxRows = 4
 		maxColumns = 10
 	}
@@ -305,18 +307,22 @@ func main() {
 		fmt.Println("::Layout1::")
 		fmt.Println("  Normal ->")
 		loadKeymap(0x07)
-		fmt.Println("  Upper ->")
-		loadKeymap(0x08)
-		fmt.Println("  Stick ->")
-		loadKeymap(0x09)
+		if isStk {
+			fmt.Println("  Upper ->")
+			loadKeymap(0x08)
+			fmt.Println("  Stick ->")
+			loadKeymap(0x09)
+		}
 		fmt.Println("")
 		fmt.Println("::Layout2::")
 		fmt.Println("  Normal ->")
 		loadKeymap(0x0A)
-		fmt.Println("  Upper ->")
-		loadKeymap(0x0B)
-		fmt.Println("  Stick ->")
-		loadKeymap(0x0C)
+		if isStk {
+			fmt.Println("  Upper ->")
+			loadKeymap(0x0B)
+			fmt.Println("  Stick ->")
+			loadKeymap(0x0C)
+		}
 		fmt.Println("")
 	} else if *remapFlag {
 		remap(*inputfile)
@@ -324,11 +330,15 @@ func main() {
 		fmt.Println("remap layout1&2(Normal/Upper)")
 
 		writeKeymap(0x01)
-		writeKeymap(0x02)
-		writeKeymap(0x03)
+		if isStk {
+			writeKeymap(0x02)
+			writeKeymap(0x03)
+		}
 		writeKeymap(0x04)
-		writeKeymap(0x05)
-		writeKeymap(0x06)
+		if isStk {
+			writeKeymap(0x05)
+			writeKeymap(0x06)
+		}
 		fmt.Println("")
 	} else if *saveFlag {
 		saveToFlash()
