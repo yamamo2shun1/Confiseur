@@ -1,6 +1,6 @@
 package main
 
-var keyList [97]string = [97]string{
+var keyList [98]string = [98]string{
 	"A",           // a
 	"B",           // b
 	"C",           // c
@@ -92,6 +92,7 @@ var keyList [97]string = [97]string{
 	"R_Shift",     // Right Shift
 	"R_Alt",       // Right Alt
 	"R_Gui",       // Right GUI
+	"Reset",       // Reset
 	"MGain_Up",    // Master Gain Up
 	"MGain_Down",  // Master Gain Down
 	"Upper",       // Upper
@@ -192,6 +193,7 @@ var SC = map[string]byte{
 	"R_Shift":     0xE5, // Right Shift
 	"R_Alt":       0xE6, // Right Alt
 	"R_Gui":       0xE7, // Right GUI
+	"Reset":       0xF9, // Reset
 	"MGain_Up":    0xFA, // Master Gain Up
 	"MGain_Down":  0xFB, // Master Gain Down
 	"Upper":       0xFC, // Upper
