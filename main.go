@@ -320,29 +320,6 @@ func saveToFlash() {
 }
 
 func main() {
-	// Initialize the hid package.
-	if err := hid.Init(); err != nil {
-		log.Fatal(err)
-	}
-
-	// Open the device using the VID and PID.
-	d, err = hid.OpenPath(GetSettingPath())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Read the Product String.
-	s, err := d.GetProductStr()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if strings.Contains(s, "C4NDY STK") {
-		isStk = true
-		maxRows = 4
-		maxColumns = 10
-	}
-
 	checkFlag := flag.Bool("check", false, "Show information on C4NDY KeyVLM/STK connected to PC/Mac.")
 	loadFlag := flag.Bool("load", false, "Show the current key names of the keyboard.")
 	remapFlag := flag.Bool("remap", false, "Write the keyboard with the keymap set in layouts.toml.")
@@ -352,65 +329,89 @@ func main() {
 
 	flag.Parse()
 
-	if *checkFlag {
-		checkHid()
-		fmt.Println("")
-	} else if *loadFlag {
-		initKN()
+	// Initialize the hid package.
+	if err := hid.Init(); err != nil {
+		log.Fatal(err)
+	}
 
-		// check current hardware layout
-		fmt.Println("--- Current Hardware Layout ScanCode ---")
-		fmt.Println("::Layout1::")
-		fmt.Println("  Normal ->")
-		loadKeymap(0x11)
-		if isStk {
-			fmt.Println("  Upper ->")
-			loadKeymap(0x12)
-			fmt.Println("  Stick ->")
-			loadKeymap(0x13)
-			fmt.Println("  Led ->")
-			loadKeymap(0x14)
+	// Open the device using the VID and PID.
+	d, err = hid.OpenPath(GetSettingPath())
+	if err == nil {
+		// Read the Product String.
+		s, err := d.GetProductStr()
+		if err != nil {
+			fmt.Println("Error: ", err)
 		}
-		fmt.Println("")
-		fmt.Println("::Layout2::")
-		fmt.Println("  Normal ->")
-		loadKeymap(0x19)
-		if isStk {
-			fmt.Println("  Upper ->")
-			loadKeymap(0x1A)
-			fmt.Println("  Stick ->")
-			loadKeymap(0x1B)
-			fmt.Println("  Led ->")
-			loadKeymap(0x1C)
-		}
-		fmt.Println("")
-	} else if *remapFlag {
-		remap(*inputfile)
 
-		fmt.Println("remap layout1&2(Normal/Upper)")
+		if strings.Contains(s, "C4NDY STK") {
+			isStk = true
+			maxRows = 4
+			maxColumns = 10
+		}
 
-		writeKeymap(0x01)
-		if isStk {
-			writeKeymap(0x02)
-			writeKeymap(0x03)
-			writeKeymap(0x04)
+		if *checkFlag {
+			checkHid()
+			fmt.Println("")
+		} else if *loadFlag {
+			initKN()
+
+			// check current hardware layout
+			fmt.Println("--- Current Hardware Layout ScanCode ---")
+			fmt.Println("::Layout1::")
+			fmt.Println("  Normal ->")
+			loadKeymap(0x11)
+			if isStk {
+				fmt.Println("  Upper ->")
+				loadKeymap(0x12)
+				fmt.Println("  Stick ->")
+				loadKeymap(0x13)
+				fmt.Println("  Led ->")
+				loadKeymap(0x14)
+			}
+			fmt.Println("")
+			fmt.Println("::Layout2::")
+			fmt.Println("  Normal ->")
+			loadKeymap(0x19)
+			if isStk {
+				fmt.Println("  Upper ->")
+				loadKeymap(0x1A)
+				fmt.Println("  Stick ->")
+				loadKeymap(0x1B)
+				fmt.Println("  Led ->")
+				loadKeymap(0x1C)
+			}
+			fmt.Println("")
+		} else if *remapFlag {
+			remap(*inputfile)
+
+			fmt.Println("remap layout1&2(Normal/Upper)")
+
+			writeKeymap(0x01)
+			if isStk {
+				writeKeymap(0x02)
+				writeKeymap(0x03)
+				writeKeymap(0x04)
+			}
+			writeKeymap(0x09)
+			if isStk {
+				writeKeymap(0x0A)
+				writeKeymap(0x0B)
+				writeKeymap(0x0C)
+			}
+			fmt.Println("")
+		} else if *saveFlag {
+			saveToFlash()
+			fmt.Println("")
 		}
-		writeKeymap(0x09)
-		if isStk {
-			writeKeymap(0x0A)
-			writeKeymap(0x0B)
-			writeKeymap(0x0C)
-		}
-		fmt.Println("")
-	} else if *saveFlag {
-		saveToFlash()
-		fmt.Println("")
-	} else if *verFlag {
+		time.Sleep(100 * time.Millisecond)
+	} else {
+		fmt.Println("::WARNING:: C4NDY KeyVLM/STK is not found.")
+	}
+
+	if *verFlag {
 		fmt.Println("C4NDY KeyConfigurator v1.1.0!")
 		fmt.Println("")
 	}
-
-	time.Sleep(100 * time.Millisecond)
 
 	// Finalize the hid package.
 	if err := hid.Exit(); err != nil {
