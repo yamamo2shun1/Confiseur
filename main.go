@@ -22,6 +22,7 @@ type Layout struct {
 	Normal [][]string `toml:"normal"`
 	Upper  [][]string `toml:"upper"`
 	Stick  [][]string `toml:"stick"`
+	Led    [][]byte   `toml:"led"`
 }
 
 var err error
@@ -87,7 +88,10 @@ func loadKeymap(val byte) {
 	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
 
 	for i := 0; i < maxRows; i++ {
-		if (val == 0x09 || val == 0x0C) && i > 1 {
+		if (val == 0x13 || val == 0x1B) && i > 1 {
+			continue
+		}
+		if (val == 0x14 || val == 0x1C) && i > 2 {
 			continue
 		}
 		remapRows[0] = 0x00
@@ -105,7 +109,18 @@ func loadKeymap(val byte) {
 
 		fmt.Fprint(w, "[\t")
 		for j := 0; j < maxColumns; j++ {
-			fmt.Fprintf(w, "%s\t", KN[remapRows[j]])
+			if (val == 0x13 || val == 0x1B) && j > 3 {
+				continue
+			}
+			if (val == 0x14 || val == 0x1C) && j > 2 {
+				continue
+			}
+
+			if val == 0x14 || val == 0x1C {
+				fmt.Fprintf(w, "%02X\t", remapRows[j])
+			} else {
+				fmt.Fprintf(w, "%s\t", KN[remapRows[j]])
+			}
 		}
 		fmt.Fprintln(w, "]\t")
 	}
@@ -113,8 +128,14 @@ func loadKeymap(val byte) {
 }
 
 func writeKeymap(val byte) {
+	for i := range remapRows {
+		remapRows[i] = 0x00
+	}
 	for i := 0; i < maxRows; i++ {
-		if (val == 0x03 || val == 0x06) && i > 1 {
+		if (val == 0x03 || val == 0x0B) && i > 1 {
+			continue
+		}
+		if (val == 0x04 || val == 0x0C) && i > 2 {
 			continue
 		}
 
@@ -122,7 +143,10 @@ func writeKeymap(val byte) {
 		remapRows[1] = 0xF0 + byte(i)
 		remapRows[2] = val
 		for j := 0; j < maxColumns; j++ {
-			if (val == 0x03 || val == 0x06) && j > 3 {
+			if (val == 0x03 || val == 0x0B) && j > 3 {
+				continue
+			}
+			if (val == 0x04 || val == 0x0C) && j > 2 {
 				continue
 			}
 
@@ -134,11 +158,15 @@ func writeKeymap(val byte) {
 			case 0x03:
 				remapRows[j+3] = SC[layouts.Layout1.Stick[i][j]]
 			case 0x04:
+				remapRows[j+3] = layouts.Layout1.Led[i][j]
+			case 0x09:
 				remapRows[j+3] = SC[layouts.Layout2.Normal[i][j]]
-			case 0x05:
+			case 0x0A:
 				remapRows[j+3] = SC[layouts.Layout2.Upper[i][j]]
-			case 0x06:
+			case 0x0B:
 				remapRows[j+3] = SC[layouts.Layout2.Stick[i][j]]
+			case 0x0C:
+				remapRows[j+3] = layouts.Layout2.Led[i][j]
 			}
 		}
 
@@ -175,39 +203,53 @@ func remap(inputfile string) {
 		}
 		fmt.Println("]")
 	}
-	fmt.Println("  Upper ->")
-	for i := 0; i < maxRows; i++ {
-		fmt.Println(layouts.Layout1.Upper[i])
-	}
-	for i := 0; i < maxRows; i++ {
-		fmt.Print("[ ")
-		for j := 0; j < maxColumns; j++ {
-			if SC[layouts.Layout1.Upper[i][j]] == 0x00 {
-				if err := hid.Exit(); err != nil {
-					log.Fatal(err)
-				}
-			} else {
-				fmt.Printf("0x%02X ", SC[layouts.Layout1.Upper[i][j]])
-			}
+	if len(layouts.Layout1.Upper) != 0 {
+		fmt.Println("  Upper ->")
+		for i := 0; i < maxRows; i++ {
+			fmt.Println(layouts.Layout1.Upper[i])
 		}
-		fmt.Println("]")
-	}
-	fmt.Println("  Stick ->")
-	for i := 0; i < 2; i++ {
-		fmt.Println(layouts.Layout1.Stick[i])
-	}
-	for i := 0; i < 2; i++ {
-		fmt.Print("[ ")
-		for j := 0; j < 4; j++ {
-			if SC[layouts.Layout1.Stick[i][j]] == 0x00 {
-				if err := hid.Exit(); err != nil {
-					log.Fatal(err)
+		for i := 0; i < maxRows; i++ {
+			fmt.Print("[ ")
+			for j := 0; j < maxColumns; j++ {
+				if SC[layouts.Layout1.Upper[i][j]] == 0x00 {
+					if err := hid.Exit(); err != nil {
+						log.Fatal(err)
+					}
+				} else {
+					fmt.Printf("0x%02X ", SC[layouts.Layout1.Upper[i][j]])
 				}
-			} else {
-				fmt.Printf("0x%02X ", SC[layouts.Layout1.Stick[i][j]])
 			}
+			fmt.Println("]")
 		}
-		fmt.Println("]")
+	}
+	if len(layouts.Layout1.Stick) != 0 {
+		fmt.Println("  Stick ->")
+		for i := 0; i < 2; i++ {
+			fmt.Println(layouts.Layout1.Stick[i])
+		}
+		for i := 0; i < 2; i++ {
+			fmt.Print("[ ")
+			for j := 0; j < 4; j++ {
+				if SC[layouts.Layout1.Stick[i][j]] == 0x00 {
+					if err := hid.Exit(); err != nil {
+						log.Fatal(err)
+					}
+				} else {
+					fmt.Printf("0x%02X ", SC[layouts.Layout1.Stick[i][j]])
+				}
+			}
+			fmt.Println("]")
+		}
+	}
+	if len(layouts.Layout1.Led) != 0 {
+		fmt.Println("  Led ->")
+		for i := 0; i < 3; i++ {
+			fmt.Print("[ ")
+			for j := 0; j < 3; j++ {
+				fmt.Printf("0x%02X ", layouts.Layout1.Led[i][j])
+			}
+			fmt.Println("]")
+		}
 	}
 	fmt.Println("")
 	fmt.Println("::Layout2::")
@@ -222,27 +264,41 @@ func remap(inputfile string) {
 		}
 		fmt.Println("]")
 	}
-	fmt.Println("  Upper ->")
-	for i := 0; i < maxRows; i++ {
-		fmt.Println(layouts.Layout2.Upper[i])
-	}
-	for i := 0; i < maxRows; i++ {
-		fmt.Print("[ ")
-		for j := 0; j < maxColumns; j++ {
-			fmt.Printf("0x%02X ", SC[layouts.Layout2.Upper[i][j]])
+	if len(layouts.Layout2.Upper) != 0 {
+		fmt.Println("  Upper ->")
+		for i := 0; i < maxRows; i++ {
+			fmt.Println(layouts.Layout2.Upper[i])
 		}
-		fmt.Println("]")
-	}
-	fmt.Println("  Stick ->")
-	for i := 0; i < 2; i++ {
-		fmt.Println(layouts.Layout2.Stick[i])
-	}
-	for i := 0; i < 2; i++ {
-		fmt.Print("[ ")
-		for j := 0; j < 4; j++ {
-			fmt.Printf("0x%02X ", SC[layouts.Layout2.Stick[i][j]])
+		for i := 0; i < maxRows; i++ {
+			fmt.Print("[ ")
+			for j := 0; j < maxColumns; j++ {
+				fmt.Printf("0x%02X ", SC[layouts.Layout2.Upper[i][j]])
+			}
+			fmt.Println("]")
 		}
-		fmt.Println("]")
+	}
+	if len(layouts.Layout2.Stick) != 0 {
+		fmt.Println("  Stick ->")
+		for i := 0; i < 2; i++ {
+			fmt.Println(layouts.Layout2.Stick[i])
+		}
+		for i := 0; i < 2; i++ {
+			fmt.Print("[ ")
+			for j := 0; j < 4; j++ {
+				fmt.Printf("0x%02X ", SC[layouts.Layout2.Stick[i][j]])
+			}
+			fmt.Println("]")
+		}
+	}
+	if len(layouts.Layout2.Led) != 0 {
+		fmt.Println("  Led ->")
+		for i := 0; i < 3; i++ {
+			fmt.Print("[ ")
+			for j := 0; j < 3; j++ {
+				fmt.Printf("0x%02X ", layouts.Layout2.Led[i][j])
+			}
+			fmt.Println("]")
+		}
 	}
 	fmt.Println("")
 }
@@ -306,22 +362,26 @@ func main() {
 		fmt.Println("--- Current Hardware Layout ScanCode ---")
 		fmt.Println("::Layout1::")
 		fmt.Println("  Normal ->")
-		loadKeymap(0x07)
+		loadKeymap(0x11)
 		if isStk {
 			fmt.Println("  Upper ->")
-			loadKeymap(0x08)
+			loadKeymap(0x12)
 			fmt.Println("  Stick ->")
-			loadKeymap(0x09)
+			loadKeymap(0x13)
+			fmt.Println("  Led ->")
+			loadKeymap(0x14)
 		}
 		fmt.Println("")
 		fmt.Println("::Layout2::")
 		fmt.Println("  Normal ->")
-		loadKeymap(0x0A)
+		loadKeymap(0x19)
 		if isStk {
 			fmt.Println("  Upper ->")
-			loadKeymap(0x0B)
+			loadKeymap(0x1A)
 			fmt.Println("  Stick ->")
-			loadKeymap(0x0C)
+			loadKeymap(0x1B)
+			fmt.Println("  Led ->")
+			loadKeymap(0x1C)
 		}
 		fmt.Println("")
 	} else if *remapFlag {
@@ -333,18 +393,20 @@ func main() {
 		if isStk {
 			writeKeymap(0x02)
 			writeKeymap(0x03)
+			writeKeymap(0x04)
 		}
-		writeKeymap(0x04)
+		writeKeymap(0x09)
 		if isStk {
-			writeKeymap(0x05)
-			writeKeymap(0x06)
+			writeKeymap(0x0A)
+			writeKeymap(0x0B)
+			writeKeymap(0x0C)
 		}
 		fmt.Println("")
 	} else if *saveFlag {
 		saveToFlash()
 		fmt.Println("")
 	} else if *verFlag {
-		fmt.Println("C4NDY KeyConfigurator v1.0.2!")
+		fmt.Println("C4NDY KeyConfigurator v1.1.0!")
 		fmt.Println("")
 	}
 
