@@ -89,6 +89,8 @@
 # "R_Shift",     // Right Shift
 # "R_Alt",       // Right Alt
 # "R_Gui",       // Right GUI
+# "M_LBTN",      // Mouse Left Button
+# "M_RBTN",      // Mouse Right Button
 # "Reset",       // Reset
 # "MGain_Up",    // Master Gain Up
 # "MGain_Down",  // Master Gain Down
@@ -105,10 +107,10 @@
 		["Null", "L_Gui", "R_Alt", "Null", "L_Shift", "Null", "Left", "Down",  "Up",     "Right"]
 	]
 	upper = [
-		["1",    "2",         "3",      "4",     "5",       "6",    "7",          "8",          "9",          "0"],
-		["Q",    "W",         "Null",   "L_Gui", "G",       "Null", "Minus",      "Equal",      "O_SBracket", "Apostrophe"],
-		["Null", "R_Control", "Null",   "Null",  "B",       "Null", "C_SBracket", "Null",       "Backquote",  "Yen"],
-		["Null", "LNPH",      "LAYOUT", "Null",  "L_Shift", "Null", "Null",       "MGain_Down", "MGain_Up",   "Reset"]
+		["1",    "2",         "3",      "4",      "5",       "6",    "7",          "8",          "9",          "0"],
+		["Q",    "W",         "Null",   "L_Gui",  "G",       "Null", "Minus",      "Equal",      "O_SBracket", "Apostrophe"],
+		["Null", "R_Control", "M_LBTN", "M_RBTN", "B",       "Null", "C_SBracket", "Null",       "Backquote",  "Yen"],
+		["Null", "LNPH",      "LAYOUT", "Null",   "L_Shift", "Null", "Null",       "MGain_Down", "MGain_Up",   "Reset"]
 	]
 	stick = [
 		["BS",  "Tab",    "Esc",   "Upper"],
@@ -128,10 +130,10 @@
 		["Null",       "L_Gui", "L_Alt", "Null", "L_Shift", "Null", "Left", "Down", "Up", "Right"]
 	]
 	upper = [
-		["1",          "2",        "3",      "4",     "5",       "6",    "7",          "8",          "9",         "0"],
-		["Apostrophe", "Comma",    "Null",   "L_Gui", "Period",  "Null", "O_SBracket", "C_SBracket", "Slash",     "Minus"],
-		["Null",       "CapsLock", "Null",   "Null",  "X",       "Null", "Equal",      "Null",       "Backquote", "Backslash"],
-		["Null",       "LNPH",     "LAYOUT", "Null",  "L_Shift", "Null", "Null",       "MGain_Down", "MGain_Up",  "Reset"]
+		["1",          "2",        "3",      "4",      "5",       "6",    "7",          "8",          "9",         "0"],
+		["Apostrophe", "Comma",    "Null",   "L_Gui",  "Period",  "Null", "O_SBracket", "C_SBracket", "Slash",     "Minus"],
+		["Null",       "CapsLock", "M_LBTN", "M_RBTN", "X",       "Null", "Equal",      "Null",       "Backquote", "Backslash"],
+		["Null",       "LNPH",     "LAYOUT", "Null",   "L_Shift", "Null", "Null",       "MGain_Down", "MGain_Up",  "Reset"]
 	]
 	stick = [
 		["BS", "Tab",    "Esc",   "Upper"],

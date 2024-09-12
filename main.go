@@ -409,7 +409,7 @@ func main() {
 	}
 
 	if *verFlag {
-		fmt.Println("C4NDY KeyConfigurator v1.1.0!")
+		fmt.Println("C4NDY KeyConfigurator v1.2.0!")
 		fmt.Println("")
 	}
 
