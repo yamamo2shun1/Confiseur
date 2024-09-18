@@ -1,6 +1,6 @@
 package main
 
-var keyList [100]string = [100]string{
+var keyList [101]string = [101]string{
 	"A",           // a
 	"B",           // b
 	"C",           // c
@@ -94,6 +94,7 @@ var keyList [100]string = [100]string{
 	"R_Gui",       // Right GUI
 	"M_LBTN",      // Mouse Left Button
 	"M_RBTN",      // Mouse Right Button
+	"M_WHEEL",     // Mouse Wheel
 	"Reset",       // Reset
 	"MGain_Up",    // Master Gain Up
 	"MGain_Down",  // Master Gain Down
@@ -197,6 +198,7 @@ var SC = map[string]byte{
 	"R_Gui":       0xE7, // Right GUI
 	"M_LBTN":      0xF0, // Mouse Left Button
 	"M_RBTN":      0xF1, // Mouse Right Button
+	"M_WHEEL":     0xF2, // Mouse Wheel
 	"Reset":       0xF9, // Reset
 	"MGain_Up":    0xFA, // Master Gain Up
 	"MGain_Down":  0xFB, // Master Gain Down

@@ -91,6 +91,7 @@
 # "R_Gui",       // Right GUI
 # "M_LBTN",      // Mouse Left Button
 # "M_RBTN",      // Mouse Right Button
+# "M_WHEEL",     // Mouse Wheel
 # "Reset",       // Reset
 # "MGain_Up",    // Master Gain Up
 # "MGain_Down",  // Master Gain Down
@@ -104,16 +105,16 @@
 		["Q",    "W",     "E",     "R",    "T",       "Y",    "U",    "I",     "O",      "P"],
 		["A",    "S",     "D",     "F",    "G",       "H",    "J",    "K",     "L",      "Colon"],
 		["Z",    "X",     "C",     "V",    "B",       "N",    "M",    "Comma", "Period", "Slash"],
-		["Null", "L_Gui", "R_Alt", "Null", "L_Shift", "Null", "Left", "Down",  "Up",     "Right"]
+		["Null", "L_Gui", "R_Alt", "Null", "Upper", "Null", "Left", "Down",  "Up",     "Right"]
 	]
 	upper = [
 		["1",    "2",         "3",      "4",      "5",       "6",    "7",          "8",          "9",          "0"],
 		["Q",    "W",         "Null",   "L_Gui",  "G",       "Null", "Minus",      "Equal",      "O_SBracket", "Apostrophe"],
-		["Null", "R_Control", "M_LBTN", "M_RBTN", "B",       "Null", "C_SBracket", "Null",       "Backquote",  "Yen"],
-		["Null", "LNPH",      "LAYOUT", "Null",   "L_Shift", "Null", "Null",       "MGain_Down", "MGain_Up",   "Reset"]
+		["Null", "R_Control", "M_LBTN", "M_RBTN", "M_WHEEL", "Null", "C_SBracket", "Null",       "Backquote",  "Yen"],
+		["Null", "LNPH",      "LAYOUT", "Null",   "Upper",   "Null", "Null",       "MGain_Down", "MGain_Up",   "Reset"]
 	]
 	stick = [
-		["BS",  "Tab",    "Esc",   "Upper"],
+		["BS",  "Tab",    "Esc",   "L_Shift"],
 		["Del", "Henkan", "Space", "CapsLock"]
 	]
 	led = [
@@ -127,16 +128,16 @@
 		["Apostrophe", "Comma", "O",     "U",    "Y",       "F",    "G",    "C",    "R",  "L"],
 		["P",          "I",     "E",     "A",    "Period",  "D",    "S",    "T",    "H",  "Z"],
 		["J",          "Q",     "Colon", "K",    "X",       "B",    "M",    "W",    "N",  "V"],
-		["Null",       "L_Gui", "L_Alt", "Null", "L_Shift", "Null", "Left", "Down", "Up", "Right"]
+		["Null",       "L_Gui", "L_Alt", "Null", "Upper", "Null", "Left", "Down", "Up", "Right"]
 	]
 	upper = [
 		["1",          "2",        "3",      "4",      "5",       "6",    "7",          "8",          "9",         "0"],
 		["Apostrophe", "Comma",    "Null",   "L_Gui",  "Period",  "Null", "O_SBracket", "C_SBracket", "Slash",     "Minus"],
-		["Null",       "CapsLock", "M_LBTN", "M_RBTN", "X",       "Null", "Equal",      "Null",       "Backquote", "Backslash"],
-		["Null",       "LNPH",     "LAYOUT", "Null",   "L_Shift", "Null", "Null",       "MGain_Down", "MGain_Up",  "Reset"]
+		["Null",       "CapsLock", "M_LBTN", "M_RBTN", "M_WHEEL", "Null", "Equal",      "Null",       "Backquote", "Backslash"],
+		["Null",       "LNPH",     "LAYOUT", "Null",   "Upper",   "Null", "Null",       "MGain_Down", "MGain_Up",  "Reset"]
 	]
 	stick = [
-		["BS", "Tab",    "Esc",   "Upper"],
+		["BS", "Tab",    "Esc",   "L_Shift"],
 		["Del", "Space", "Enter", "R_Control"]
 	]
 	led = [
