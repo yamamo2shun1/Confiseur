@@ -1,6 +1,6 @@
 package main
 
-var keyList [101]string = [101]string{
+var KEY_LIST [101]string = [101]string{
 	"A",           // a
 	"B",           // b
 	"C",           // c
@@ -104,7 +104,7 @@ var keyList [101]string = [101]string{
 	"Null",
 }
 
-var SC = map[string]byte{
+var KEYCODE = map[string]byte{
 	"A":           0x04, // a
 	"B":           0x05, // b
 	"C":           0x06, // c
@@ -208,10 +208,10 @@ var SC = map[string]byte{
 	"Null":        0xFF,
 }
 
-var KN = make(map[byte]string)
+var KEYNAME = make(map[byte]string)
 
-func initKN() {
-	for key, value := range SC {
-		KN[value] = key
+func swapKeyCodeAndName() {
+	for key, value := range KEYCODE {
+		KEYNAME[value] = key
 	}
 }
