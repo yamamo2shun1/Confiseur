@@ -26,7 +26,8 @@ type Layout struct {
 }
 
 var err error
-var d *hid.Device
+var hidDevices []*hid.Device
+var connectedDeviceNum = 0
 var layouts Layouts
 var remapRows []byte = make([]byte, 16)
 
@@ -34,57 +35,83 @@ var maxRows = 5
 var maxColumns = 13
 var isStk = false
 
-func GetSettingPath() string {
-	path := "nopath"
+func getSettingPaths() []string {
+	path := []string{}
 
 	hid.Enumerate(hid.VendorIDAny, hid.ProductIDAny, func(info *hid.DeviceInfo) error {
 		if strings.Contains(info.ProductStr, "C4NDY") && info.Usage == 1 {
-			path = info.Path
+			path = append(path, info.Path)
 		}
+		//fmt.Printf("ProductStr: %s/Usage: %d\n", info.ProductStr, info.Usage)
 		return nil
 	})
 
 	return path
 }
 
+func getConnectedDeviceList() []string {
+	deviceList := []string{}
+
+	for _, device := range hidDevices {
+		deviceName, _ := device.GetProductStr()
+		deviceList = append(deviceList, deviceName)
+	}
+
+	return deviceList
+}
+
 func checkHid() {
-	// Read the Manufacturer String.
-	s, err := d.GetMfrStr()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("Manufacturer String: %s\n", s)
-
-	// Read the Product String.
-	s, err = d.GetProductStr()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("Product String: %s\n", s)
-
-	if strings.Contains(s, "C4NDY STK") {
-		maxRows = 4
-		maxColumns = 10
-	}
-
-	// Read the Serial Number String.
-	s, err = d.GetSerialNbr()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("Serial Number String: %s\n", s)
-
-	/*
-		// Read Indexed String 1.
-		s, err = d.GetIndexedStr(1)
+	for i := 0; i < connectedDeviceNum; i++ {
+		fmt.Printf("::%d::\n", i)
+		// Read the Manufacturer String.
+		s, err := hidDevices[i].GetMfrStr()
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("Indexed String 1: %s\n", s)
-	*/
+		fmt.Printf("Manufacturer String: %s\n", s)
+
+		// Read the Product String.
+		s, err = hidDevices[i].GetProductStr()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("Product String: %s\n", s)
+
+		if strings.Contains(s, "C4NDY STK") {
+			maxRows = 4
+			maxColumns = 10
+		}
+
+		// Read the Serial Number String.
+		s, err = hidDevices[i].GetSerialNbr()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("Serial Number String: %s\n", s)
+		fmt.Println("")
+	}
 }
 
-func loadKeymap(val byte) {
+func checkKeyboardType(index int) {
+	// Read the Product String.
+	s, err := hidDevices[index].GetProductStr()
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+
+	if strings.Contains(s, "C4NDY KeyVLM") {
+		isStk = false
+		maxRows = 5
+		maxColumns = 13
+	}
+	if strings.Contains(s, "C4NDY STK") {
+		isStk = true
+		maxRows = 4
+		maxColumns = 10
+	}
+}
+
+func loadKeymap(index int, val byte) {
 	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
 
 	for i := 0; i < maxRows; i++ {
@@ -97,12 +124,12 @@ func loadKeymap(val byte) {
 		remapRows[0] = 0x00
 		remapRows[1] = 0xF0 + byte(i)
 		remapRows[2] = val
-		if _, err := d.Write(remapRows); err != nil {
+		if _, err := hidDevices[index].Write(remapRows); err != nil {
 			log.Fatal(err)
 		}
 		time.Sleep(100 * time.Millisecond)
 
-		if _, err := d.Read(remapRows); err != nil {
+		if _, err := hidDevices[index].Read(remapRows); err != nil {
 			log.Fatal(err)
 		}
 		time.Sleep(100 * time.Millisecond)
@@ -119,7 +146,7 @@ func loadKeymap(val byte) {
 			if val == 0x14 || val == 0x1C {
 				fmt.Fprintf(w, "%02X\t", remapRows[j])
 			} else {
-				fmt.Fprintf(w, "%s\t", KN[remapRows[j]])
+				fmt.Fprintf(w, "%s\t", KEYNAME[remapRows[j]])
 			}
 		}
 		fmt.Fprintln(w, "]\t")
@@ -127,7 +154,7 @@ func loadKeymap(val byte) {
 	w.Flush()
 }
 
-func writeKeymap(val byte) {
+func writeKeymap(index int, val byte) {
 	for i := range remapRows {
 		remapRows[i] = 0x00
 	}
@@ -152,25 +179,25 @@ func writeKeymap(val byte) {
 
 			switch val {
 			case 0x01:
-				remapRows[j+3] = SC[layouts.Layout1.Normal[i][j]]
+				remapRows[j+3] = KEYCODE[layouts.Layout1.Normal[i][j]]
 			case 0x02:
-				remapRows[j+3] = SC[layouts.Layout1.Upper[i][j]]
+				remapRows[j+3] = KEYCODE[layouts.Layout1.Upper[i][j]]
 			case 0x03:
-				remapRows[j+3] = SC[layouts.Layout1.Stick[i][j]]
+				remapRows[j+3] = KEYCODE[layouts.Layout1.Stick[i][j]]
 			case 0x04:
 				remapRows[j+3] = layouts.Layout1.Led[i][j]
 			case 0x09:
-				remapRows[j+3] = SC[layouts.Layout2.Normal[i][j]]
+				remapRows[j+3] = KEYCODE[layouts.Layout2.Normal[i][j]]
 			case 0x0A:
-				remapRows[j+3] = SC[layouts.Layout2.Upper[i][j]]
+				remapRows[j+3] = KEYCODE[layouts.Layout2.Upper[i][j]]
 			case 0x0B:
-				remapRows[j+3] = SC[layouts.Layout2.Stick[i][j]]
+				remapRows[j+3] = KEYCODE[layouts.Layout2.Stick[i][j]]
 			case 0x0C:
 				remapRows[j+3] = layouts.Layout2.Led[i][j]
 			}
 		}
 
-		if _, err := d.Write(remapRows); err != nil {
+		if _, err := hidDevices[index].Write(remapRows); err != nil {
 			log.Fatal(err)
 		}
 		time.Sleep(100 * time.Millisecond)
@@ -193,12 +220,12 @@ func remap(inputfile string) {
 	for i := 0; i < maxRows; i++ {
 		fmt.Print("[ ")
 		for j := 0; j < maxColumns; j++ {
-			if SC[layouts.Layout1.Normal[i][j]] == 0x00 {
+			if KEYCODE[layouts.Layout1.Normal[i][j]] == 0x00 {
 				if err := hid.Exit(); err != nil {
 					log.Fatal(err)
 				}
 			} else {
-				fmt.Printf("0x%02X ", SC[layouts.Layout1.Normal[i][j]])
+				fmt.Printf("0x%02X ", KEYCODE[layouts.Layout1.Normal[i][j]])
 			}
 		}
 		fmt.Println("]")
@@ -211,12 +238,12 @@ func remap(inputfile string) {
 		for i := 0; i < maxRows; i++ {
 			fmt.Print("[ ")
 			for j := 0; j < maxColumns; j++ {
-				if SC[layouts.Layout1.Upper[i][j]] == 0x00 {
+				if KEYCODE[layouts.Layout1.Upper[i][j]] == 0x00 {
 					if err := hid.Exit(); err != nil {
 						log.Fatal(err)
 					}
 				} else {
-					fmt.Printf("0x%02X ", SC[layouts.Layout1.Upper[i][j]])
+					fmt.Printf("0x%02X ", KEYCODE[layouts.Layout1.Upper[i][j]])
 				}
 			}
 			fmt.Println("]")
@@ -230,12 +257,12 @@ func remap(inputfile string) {
 		for i := 0; i < 2; i++ {
 			fmt.Print("[ ")
 			for j := 0; j < 4; j++ {
-				if SC[layouts.Layout1.Stick[i][j]] == 0x00 {
+				if KEYCODE[layouts.Layout1.Stick[i][j]] == 0x00 {
 					if err := hid.Exit(); err != nil {
 						log.Fatal(err)
 					}
 				} else {
-					fmt.Printf("0x%02X ", SC[layouts.Layout1.Stick[i][j]])
+					fmt.Printf("0x%02X ", KEYCODE[layouts.Layout1.Stick[i][j]])
 				}
 			}
 			fmt.Println("]")
@@ -260,7 +287,7 @@ func remap(inputfile string) {
 	for i := 0; i < maxRows; i++ {
 		fmt.Print("[ ")
 		for j := 0; j < maxColumns; j++ {
-			fmt.Printf("0x%02X ", SC[layouts.Layout2.Normal[i][j]])
+			fmt.Printf("0x%02X ", KEYCODE[layouts.Layout2.Normal[i][j]])
 		}
 		fmt.Println("]")
 	}
@@ -272,7 +299,7 @@ func remap(inputfile string) {
 		for i := 0; i < maxRows; i++ {
 			fmt.Print("[ ")
 			for j := 0; j < maxColumns; j++ {
-				fmt.Printf("0x%02X ", SC[layouts.Layout2.Upper[i][j]])
+				fmt.Printf("0x%02X ", KEYCODE[layouts.Layout2.Upper[i][j]])
 			}
 			fmt.Println("]")
 		}
@@ -285,7 +312,7 @@ func remap(inputfile string) {
 		for i := 0; i < 2; i++ {
 			fmt.Print("[ ")
 			for j := 0; j < 4; j++ {
-				fmt.Printf("0x%02X ", SC[layouts.Layout2.Stick[i][j]])
+				fmt.Printf("0x%02X ", KEYCODE[layouts.Layout2.Stick[i][j]])
 			}
 			fmt.Println("]")
 		}
@@ -303,15 +330,15 @@ func remap(inputfile string) {
 	fmt.Println("")
 }
 
-func saveToFlash() {
+func saveToFlash(index int) {
 	remapRows[0] = 0x00
 	remapRows[1] = 0xF5
-	if _, err := d.Write(remapRows); err != nil {
+	if _, err := hidDevices[index].Write(remapRows); err != nil {
 		log.Fatal(err)
 	}
 	time.Sleep(100 * time.Millisecond)
 
-	if _, err := d.Read(remapRows); err != nil {
+	if _, err := hidDevices[index].Read(remapRows); err != nil {
 		log.Fatal(err)
 	}
 	if remapRows[1] == 0xF5 {
@@ -321,11 +348,13 @@ func saveToFlash() {
 
 func main() {
 	checkFlag := flag.Bool("check", false, "Show information on C4NDY KeyVLM/STK connected to PC/Mac.")
+	listFlag := flag.Bool("list", false, "Show connected device list.")
+	id := flag.Int("id", 0, "Select connected device ID.")
 	loadFlag := flag.Bool("load", false, "Show the current key names of the keyboard.")
 	remapFlag := flag.Bool("remap", false, "Write the keyboard with the keymap set in layouts.toml.")
 	saveFlag := flag.Bool("save", false, "Save the keymap written by \"-remap\" to the memory area.")
-	verFlag := flag.Bool("version", false, "Show the version of the tool installed.")
 	inputfile := flag.String("file", "layouts.toml", "Write the keymap set in the specified .toml to the keyboard.")
+	verFlag := flag.Bool("version", false, "Show the version of the tool installed.")
 
 	flag.Parse()
 
@@ -335,50 +364,52 @@ func main() {
 	}
 
 	// Open the device using the VID and PID.
-	d, err = hid.OpenPath(GetSettingPath())
-	if err == nil {
-		// Read the Product String.
-		s, err := d.GetProductStr()
-		if err != nil {
-			fmt.Println("Error: ", err)
-		}
+	settingPaths := getSettingPaths()
+	connectedDeviceNum = len(settingPaths)
+	hidDevices = make([]*hid.Device, connectedDeviceNum)
 
-		if strings.Contains(s, "C4NDY STK") {
-			isStk = true
-			maxRows = 4
-			maxColumns = 10
-		}
+	for i, settingPath := range settingPaths {
+		hidDevices[i], _ = hid.OpenPath(settingPath)
+	}
+
+	if connectedDeviceNum > 0 {
+		checkKeyboardType(*id)
 
 		if *checkFlag {
 			checkHid()
 			fmt.Println("")
+		} else if *listFlag {
+			deviceList := getConnectedDeviceList()
+			for i, deviceName := range deviceList {
+				fmt.Printf("%d: %s\n", i, deviceName)
+			}
 		} else if *loadFlag {
-			initKN()
+			swapKeyCodeAndName()
 
 			// check current hardware layout
 			fmt.Println("--- Current Hardware Layout ScanCode ---")
 			fmt.Println("::Layout1::")
 			fmt.Println("  Normal ->")
-			loadKeymap(0x11)
+			loadKeymap(*id, 0x11)
 			if isStk {
 				fmt.Println("  Upper ->")
-				loadKeymap(0x12)
+				loadKeymap(*id, 0x12)
 				fmt.Println("  Stick ->")
-				loadKeymap(0x13)
+				loadKeymap(*id, 0x13)
 				fmt.Println("  Led ->")
-				loadKeymap(0x14)
+				loadKeymap(*id, 0x14)
 			}
 			fmt.Println("")
 			fmt.Println("::Layout2::")
 			fmt.Println("  Normal ->")
-			loadKeymap(0x19)
+			loadKeymap(*id, 0x19)
 			if isStk {
 				fmt.Println("  Upper ->")
-				loadKeymap(0x1A)
+				loadKeymap(*id, 0x1A)
 				fmt.Println("  Stick ->")
-				loadKeymap(0x1B)
+				loadKeymap(*id, 0x1B)
 				fmt.Println("  Led ->")
-				loadKeymap(0x1C)
+				loadKeymap(*id, 0x1C)
 			}
 			fmt.Println("")
 		} else if *remapFlag {
@@ -386,21 +417,21 @@ func main() {
 
 			fmt.Println("remap layout1&2(Normal/Upper)")
 
-			writeKeymap(0x01)
+			writeKeymap(*id, 0x01)
 			if isStk {
-				writeKeymap(0x02)
-				writeKeymap(0x03)
-				writeKeymap(0x04)
+				writeKeymap(*id, 0x02)
+				writeKeymap(*id, 0x03)
+				writeKeymap(*id, 0x04)
 			}
-			writeKeymap(0x09)
+			writeKeymap(*id, 0x09)
 			if isStk {
-				writeKeymap(0x0A)
-				writeKeymap(0x0B)
-				writeKeymap(0x0C)
+				writeKeymap(*id, 0x0A)
+				writeKeymap(*id, 0x0B)
+				writeKeymap(*id, 0x0C)
 			}
 			fmt.Println("")
 		} else if *saveFlag {
-			saveToFlash()
+			saveToFlash(*id)
 			fmt.Println("")
 		}
 		time.Sleep(100 * time.Millisecond)
@@ -409,7 +440,7 @@ func main() {
 	}
 
 	if *verFlag {
-		fmt.Println("C4NDY KeyConfigurator v1.2.1!")
+		fmt.Println("C4NDY KeyConfigurator v1.3.0!")
 		fmt.Println("")
 	}
 
