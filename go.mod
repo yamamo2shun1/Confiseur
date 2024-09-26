@@ -1,4 +1,4 @@
-module github.com/yamamo2shun1/KeyConfigurator
+module github.com/yamamo2shun1/Confiseur
 
 go 1.23.1
 
