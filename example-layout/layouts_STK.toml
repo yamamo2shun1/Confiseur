@@ -105,17 +105,17 @@
 		["Q",    "W",     "E",     "R",    "T",       "Y",    "U",    "I",     "O",      "P"],
 		["A",    "S",     "D",     "F",    "G",       "H",    "J",    "K",     "L",      "Colon"],
 		["Z",    "X",     "C",     "V",    "B",       "N",    "M",    "Comma", "Period", "Slash"],
-		["Null", "L_Gui", "R_Alt", "Null", "Upper", "Null", "Left", "Down",  "Up",     "Right"]
+		["Null", "L_Gui", "R_Alt", "Null", "CapsLock", "Null", "Left", "Down",  "Up",     "Right"]
 	]
 	upper = [
 		["1",    "2",         "3",      "4",      "5",       "6",    "7",          "8",          "9",          "0"],
 		["Q",    "W",         "Null",   "L_Gui",  "G",       "Null", "Minus",      "Equal",      "O_SBracket", "Apostrophe"],
 		["Null", "R_Control", "M_LBTN", "M_RBTN", "M_WHEEL", "Null", "C_SBracket", "Null",       "Backquote",  "Yen"],
-		["Null", "LNPH",      "LAYOUT", "Null",   "Upper",   "Null", "Null",       "MGain_Down", "MGain_Up",   "Reset"]
+		["Null", "LNPH",      "LAYOUT", "Null",   "CapsLock",   "Null", "Null",       "MGain_Down", "MGain_Up",   "Reset"]
 	]
 	stick = [
-		["BS",  "Tab",    "Esc",   "L_Shift"],
-		["Del", "Henkan", "Space", "CapsLock"]
+		["BS",  "Tab",    "Space",   "Upper"],
+		["Del", "Henkan", "Esc", "R_Shift"]
 	]
 	led = [
 		[0xEC, 0x80, 0x8C],
