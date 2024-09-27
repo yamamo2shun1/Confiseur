@@ -25,7 +25,7 @@ type Layout struct {
 	Led    [][]byte   `toml:"led"`
 }
 
-const VERSION = "v0.7.2"
+const VERSION = "v0.8.0"
 
 var err error
 var hidDevices []*hid.Device
@@ -348,6 +348,22 @@ func saveToFlash(index int) {
 	}
 }
 
+func restart(index int) {
+	remapRows[0] = 0x00
+	remapRows[1] = 0xF6
+	if _, err := hidDevices[index].Write(remapRows); err != nil {
+		log.Fatal(err)
+	}
+	time.Sleep(100 * time.Millisecond)
+
+	if _, err := hidDevices[index].Read(remapRows); err != nil {
+		log.Fatal(err)
+	}
+	if remapRows[1] == 0xF6 {
+		fmt.Println("Finish.")
+	}
+}
+
 func main() {
 	checkFlag := flag.Bool("check", false, "Show information on C4NDY KeyVLM/STK connected to PC/Mac.")
 	listFlag := flag.Bool("list", false, "Show connected device list.")
@@ -355,6 +371,7 @@ func main() {
 	loadFlag := flag.Bool("load", false, "Show the current key names of the keyboard.")
 	remapFile := flag.String("remap", "", "Write the keyboard with the keymap set in toml.")
 	saveFlag := flag.Bool("save", false, "Save the keymap written by \"-remap\" to the memory area.")
+	restartFlag := flag.Bool("restart", false, "Restart the keyboard immediately.")
 	verFlag := flag.Bool("version", false, "Show the version of the tool installed.")
 
 	flag.Parse()
@@ -415,6 +432,9 @@ func main() {
 			fmt.Println("")
 		} else if *saveFlag {
 			saveToFlash(*id)
+			fmt.Println("")
+		} else if *restartFlag {
+			restart(*id)
 			fmt.Println("")
 		} else if *remapFile != "" {
 			if _, err := os.Stat(*remapFile); os.IsNotExist(err) {
