@@ -25,7 +25,7 @@ type Layout struct {
 	Led    [][]byte   `toml:"led"`
 }
 
-const VERSION = "v0.7.1"
+const VERSION = "v0.7.2"
 
 var err error
 var hidDevices []*hid.Device
@@ -353,9 +353,8 @@ func main() {
 	listFlag := flag.Bool("list", false, "Show connected device list.")
 	id := flag.Int("id", 0, "Select connected device ID.")
 	loadFlag := flag.Bool("load", false, "Show the current key names of the keyboard.")
-	remapFlag := flag.Bool("remap", false, "Write the keyboard with the keymap set in layouts.toml.")
+	remapFile := flag.String("remap", "", "Write the keyboard with the keymap set in toml.")
 	saveFlag := flag.Bool("save", false, "Save the keymap written by \"-remap\" to the memory area.")
-	inputfile := flag.String("file", "layouts.toml", "Write the keymap set in the specified .toml to the keyboard.")
 	verFlag := flag.Bool("version", false, "Show the version of the tool installed.")
 
 	flag.Parse()
@@ -414,8 +413,16 @@ func main() {
 				loadKeymap(*id, 0x1C)
 			}
 			fmt.Println("")
-		} else if *remapFlag {
-			remap(*inputfile)
+		} else if *saveFlag {
+			saveToFlash(*id)
+			fmt.Println("")
+		} else if *remapFile != "" {
+			if _, err := os.Stat(*remapFile); os.IsNotExist(err) {
+				fmt.Printf("::ERROR:: \"%s\" is not existed.\n", *remapFile)
+				os.Exit(0)
+			}
+
+			remap(*remapFile)
 
 			fmt.Println("remap layout1&2(Normal/Upper)")
 
@@ -431,9 +438,6 @@ func main() {
 				writeKeymap(*id, 0x0B)
 				writeKeymap(*id, 0x0C)
 			}
-			fmt.Println("")
-		} else if *saveFlag {
-			saveToFlash(*id)
 			fmt.Println("")
 		}
 		time.Sleep(100 * time.Millisecond)
