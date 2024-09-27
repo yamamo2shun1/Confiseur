@@ -25,6 +25,8 @@ type Layout struct {
 	Led    [][]byte   `toml:"led"`
 }
 
+const VERSION = "v0.7.1"
+
 var err error
 var hidDevices []*hid.Device
 var connectedDeviceNum = 0
@@ -440,7 +442,7 @@ func main() {
 	}
 
 	if *verFlag {
-		fmt.Println("C4NDY KeyConfigurator v1.3.0!")
+		fmt.Printf("C4NDY Confiseur %s!\n", VERSION)
 		fmt.Println("")
 	}
 
