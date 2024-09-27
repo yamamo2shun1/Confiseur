@@ -1,17 +1,17 @@
 # C4NDY Confiseur
 
 ## Description
-Command line tool to change the keymap of "[C4NDY KeyVLM and STK](https://github.com/yamamo2shun1/C4NDY)".
+Command line tool to change the keyboard settings of "[C4NDY KeyVLM and STK](https://github.com/yamamo2shun1/C4NDY)".
 
 ## Installation
 The `go install` is available.
-```
+
+```shellscript
 $ go install github.com/yamamo2shun1/Confiseur/cmd/confiseur@latest
 ```
-You can also download binaries from the [Release page](https://github.com/yamamo2shun1/Confiseur/releases).
 
 ## How to use
-```
+```Less
 -version
         Show the version of the tool installed.
         ex) confiseur -version
@@ -54,6 +54,7 @@ Add "CGO_ENABLED=1" to the environment variable and install a C compiler such as
 Add "CGO_ENABLED=1" to your shell configuration file, such as .zshrc.
 
 ## How to build from Source Code
-```
-> go build -o confiseur
+
+```shellscript
+$ go build -o confiseur
 ```
