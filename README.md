@@ -37,6 +37,10 @@ You can also download binaries from the [Release page](https://github.com/yamamo
         Save the keymap written by "remap" to the memory area
         ex) confiseur -save
             confiseur -id 0 -save
+-restart
+        Restart the keyboard immediately.
+        ex) confiseur -restart
+            confiseur -restart -id 1
 ```
 
 ## Preparation to build
