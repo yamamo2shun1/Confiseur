@@ -6,7 +6,7 @@ Command line tool to change the keymap of "[C4NDY KeyVLM and STK](https://github
 ## Installation
 The `go install` is available.
 ```
-$ go install https://github.com/yamamo2shun1/Confiseur/cmd/confiseur@latest
+$ go install github.com/yamamo2shun1/Confiseur/cmd/confiseur@latest
 ```
 You can also download binaries from the [Release page](https://github.com/yamamo2shun1/Confiseur/releases).
 
@@ -29,15 +29,10 @@ You can also download binaries from the [Release page](https://github.com/yamamo
         Show the current key names of the keyboard.
         ex) confiseur -load
             confiseur -load -id 1
--remap
-        Apply the keymap infomation from layouts.toml by default.
-        ex) confiseur -remap
-            confiseur -remap -id 0
--file [string]
-        Specify .toml file to be read.
-        This option is available when using the '-remap' option.
-        ex) confiseur -remap -file layout_STK.toml
-            confiseur -id 0 -remap -file layout_KeyVLM.toml
+-remap [string]
+        Apply the keyboard settings from specified toml file.
+        ex) confiseur -remap examples/layout_STK.toml
+            confiseur -remap examples/layout_KeyVLM.toml -id 0
 -save
         Save the keymap written by "remap" to the memory area
         ex) confiseur -save
