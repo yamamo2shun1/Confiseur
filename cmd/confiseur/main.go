@@ -25,7 +25,7 @@ type Layout struct {
 	Led    [][]byte   `toml:"led"`
 }
 
-const VERSION = "v0.8.0"
+const VERSION = "v0.9.0"
 
 var err error
 var hidDevices []*hid.Device
@@ -364,6 +364,19 @@ func restart(index int) {
 	}
 }
 
+func checkLEDColor(index int, value int) {
+	remapRows[0] = 0x00
+	remapRows[1] = 0xF7
+	remapRows[2] = byte((value >> 16) & 0x000000FF)
+	remapRows[3] = byte((value >> 8) & 0x000000FF)
+	remapRows[4] = byte(value & 0x000000FF)
+
+	if _, err := hidDevices[index].Write(remapRows); err != nil {
+		log.Fatal(err)
+	}
+	time.Sleep(100 * time.Millisecond)
+}
+
 func main() {
 	checkFlag := flag.Bool("check", false, "Show information on C4NDY KeyVLM/STK connected to PC/Mac.")
 	listFlag := flag.Bool("list", false, "Show connected device list.")
@@ -372,6 +385,7 @@ func main() {
 	remapFile := flag.String("remap", "", "Write the keyboard with the keymap set in toml.")
 	saveFlag := flag.Bool("save", false, "Save the keymap written by \"-remap\" to the memory area.")
 	restartFlag := flag.Bool("restart", false, "Restart the keyboard immediately.")
+	ledColor := flag.Int("led", -1, "Set LED RGB value for checking color.")
 	verFlag := flag.Bool("version", false, "Show the version of the tool installed.")
 
 	flag.Parse()
@@ -436,6 +450,8 @@ func main() {
 		} else if *restartFlag {
 			restart(*id)
 			fmt.Println("")
+		} else if *ledColor >= 0 && *ledColor <= 0xFFFFFF {
+			checkLEDColor(*id, *ledColor)
 		} else if *remapFile != "" {
 			if _, err := os.Stat(*remapFile); os.IsNotExist(err) {
 				fmt.Printf("::ERROR:: \"%s\" is not existed.\n", *remapFile)
@@ -460,7 +476,8 @@ func main() {
 			}
 			fmt.Println("")
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(
+			100 * time.Millisecond)
 	} else {
 		fmt.Println("::WARNING:: C4NDY KeyVLM/STK is not found.")
 	}
