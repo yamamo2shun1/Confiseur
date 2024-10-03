@@ -25,7 +25,7 @@ type Layout struct {
 	Led    [][]byte   `toml:"led"`
 }
 
-const VERSION = "v0.9.0"
+const VERSION = "v0.10.0"
 
 var err error
 var hidDevices []*hid.Device
@@ -377,6 +377,22 @@ func checkLEDColor(index int, value int) {
 	time.Sleep(100 * time.Millisecond)
 }
 
+func factoryReset(index int) {
+	remapRows[0] = 0x00
+	remapRows[1] = 0xF8
+	if _, err := hidDevices[index].Write(remapRows); err != nil {
+		log.Fatal(err)
+	}
+	time.Sleep(100 * time.Millisecond)
+
+	if _, err := hidDevices[index].Read(remapRows); err != nil {
+		log.Fatal(err)
+	}
+	if remapRows[1] == 0xF8 {
+		fmt.Println("Finish.")
+	}
+}
+
 func main() {
 	checkFlag := flag.Bool("check", false, "Show information on C4NDY KeyVLM/STK connected to PC/Mac.")
 	listFlag := flag.Bool("list", false, "Show connected device list.")
@@ -386,6 +402,7 @@ func main() {
 	saveFlag := flag.Bool("save", false, "Save the keymap written by \"-remap\" to the memory area.")
 	restartFlag := flag.Bool("restart", false, "Restart the keyboard immediately.")
 	ledColor := flag.Int("led", -1, "Set LED RGB value for checking color.")
+	factoryresetFlag := flag.Bool("factoryreset", false, "Reset all settings to factory defaults.")
 	verFlag := flag.Bool("version", false, "Show the version of the tool installed.")
 
 	flag.Parse()
@@ -449,6 +466,9 @@ func main() {
 			fmt.Println("")
 		} else if *restartFlag {
 			restart(*id)
+			fmt.Println("")
+		} else if *factoryresetFlag {
+			factoryReset(*id)
 			fmt.Println("")
 		} else if *ledColor >= 0 && *ledColor <= 0xFFFFFF {
 			checkLEDColor(*id, *ledColor)
