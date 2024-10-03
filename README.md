@@ -45,6 +45,10 @@ $ go install github.com/yamamo2shun1/Confiseur/cmd/confiseur@0.10.0
         Restart the keyboard immediately.
         ex) confiseur -restart
             confiseur -restart -id 1
+-factoryreset
+        Reset all settings to factory defaults.
+        ex) confiseur -factoryreset
+            confiseur -id 0 -factoryreset
 ```
 
 ## Preparation to build
