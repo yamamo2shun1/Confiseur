@@ -7,4 +7,7 @@ require (
 	github.com/sstallion/go-hid v0.14.1
 )
 
-require golang.org/x/sys v0.8.0 // indirect
+require (
+	github.com/sstallion/go-tools v1.0.1 // indirect
+	golang.org/x/sys v0.8.0 // indirect
+)
