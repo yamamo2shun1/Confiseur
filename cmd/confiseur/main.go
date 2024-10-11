@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -19,19 +20,19 @@ type Layouts struct {
 }
 
 type Layout struct {
-	Normal [][]string `toml:"normal"`
-	Upper  [][]string `toml:"upper"`
-	Stick  [][]string `toml:"stick"`
-	Led    [][]byte   `toml:"led"`
+	Normal [][][]string `toml:"normal"`
+	Upper  [][][]string `toml:"upper"`
+	Stick  [][][]string `toml:"stick"`
+	Led    [][]byte     `toml:"led"`
 }
 
-const VERSION = "v0.10.0"
+const VERSION = "v0.11.0"
 
 var err error
 var hidDevices []*hid.Device
 var connectedDeviceNum = 0
 var layouts Layouts
-var remapRows []byte = make([]byte, 16)
+var remapRows []byte = make([]byte, 32)
 
 var maxRows = 5
 var maxColumns = 13
@@ -148,7 +149,7 @@ func loadKeymap(index int, val byte) {
 			if val == 0x14 || val == 0x1C {
 				fmt.Fprintf(w, "%02X\t", remapRows[j])
 			} else {
-				fmt.Fprintf(w, "%s\t", KEYNAME[remapRows[j]])
+				fmt.Fprintf(w, "{%s, %02X}\t", KEYNAME[remapRows[2*j]], remapRows[2*j+1])
 			}
 		}
 		fmt.Fprintln(w, "]\t")
@@ -181,19 +182,37 @@ func writeKeymap(index int, val byte) {
 
 			switch val {
 			case 0x01:
-				remapRows[j+3] = KEYCODE[layouts.Layout1.Normal[i][j]]
+				remapRows[(2*j)+3] = KEYCODE[layouts.Layout1.Normal[i][j][0]]
+				if modifiers, err := strconv.ParseUint(layouts.Layout1.Normal[i][j][1], 2, 8); err == nil {
+					remapRows[(2*j+1)+3] = byte(modifiers)
+				}
 			case 0x02:
-				remapRows[j+3] = KEYCODE[layouts.Layout1.Upper[i][j]]
+				remapRows[(2*j)+3] = KEYCODE[layouts.Layout1.Upper[i][j][0]]
+				if modifiers, err := strconv.ParseUint(layouts.Layout1.Upper[i][j][1], 2, 8); err == nil {
+					remapRows[(2*j+1)+3] = byte(modifiers)
+				}
 			case 0x03:
-				remapRows[j+3] = KEYCODE[layouts.Layout1.Stick[i][j]]
+				remapRows[(2*j)+3] = KEYCODE[layouts.Layout1.Stick[i][j][0]]
+				if modifiers, err := strconv.ParseUint(layouts.Layout1.Stick[i][j][1], 2, 8); err == nil {
+					remapRows[(2*j+1)+3] = byte(modifiers)
+				}
 			case 0x04:
 				remapRows[j+3] = layouts.Layout1.Led[i][j]
 			case 0x09:
-				remapRows[j+3] = KEYCODE[layouts.Layout2.Normal[i][j]]
+				remapRows[(2*j)+3] = KEYCODE[layouts.Layout2.Normal[i][j][0]]
+				if modifiers, err := strconv.ParseUint(layouts.Layout2.Normal[i][j][1], 2, 8); err == nil {
+					remapRows[(2*j+1)+3] = byte(modifiers)
+				}
 			case 0x0A:
-				remapRows[j+3] = KEYCODE[layouts.Layout2.Upper[i][j]]
+				remapRows[(2*j)+3] = KEYCODE[layouts.Layout2.Upper[i][j][0]]
+				if modifiers, err := strconv.ParseUint(layouts.Layout2.Upper[i][j][1], 2, 8); err == nil {
+					remapRows[(2*j+1)+3] = byte(modifiers)
+				}
 			case 0x0B:
-				remapRows[j+3] = KEYCODE[layouts.Layout2.Stick[i][j]]
+				remapRows[(2*j)+3] = KEYCODE[layouts.Layout2.Stick[i][j][0]]
+				if modifiers, err := strconv.ParseUint(layouts.Layout2.Stick[i][j][1], 2, 8); err == nil {
+					remapRows[(2*j+1)+3] = byte(modifiers)
+				}
 			case 0x0C:
 				remapRows[j+3] = layouts.Layout2.Led[i][j]
 			}
@@ -222,12 +241,14 @@ func remap(inputfile string) {
 	for i := 0; i < maxRows; i++ {
 		fmt.Print("[ ")
 		for j := 0; j < maxColumns; j++ {
-			if KEYCODE[layouts.Layout1.Normal[i][j]] == 0x00 {
+			if KEYCODE[layouts.Layout1.Normal[i][j][0]] == 0x00 {
 				if err := hid.Exit(); err != nil {
 					log.Fatal(err)
 				}
 			} else {
-				fmt.Printf("0x%02X ", KEYCODE[layouts.Layout1.Normal[i][j]])
+				if modifiers, err := strconv.ParseUint(layouts.Layout1.Normal[i][j][1], 2, 8); err == nil {
+					fmt.Printf("{0x%02X, 0x%02X} ", KEYCODE[layouts.Layout1.Normal[i][j][0]], modifiers)
+				}
 			}
 		}
 		fmt.Println("]")
@@ -240,12 +261,14 @@ func remap(inputfile string) {
 		for i := 0; i < maxRows; i++ {
 			fmt.Print("[ ")
 			for j := 0; j < maxColumns; j++ {
-				if KEYCODE[layouts.Layout1.Upper[i][j]] == 0x00 {
+				if KEYCODE[layouts.Layout1.Upper[i][j][0]] == 0x00 {
 					if err := hid.Exit(); err != nil {
 						log.Fatal(err)
 					}
 				} else {
-					fmt.Printf("0x%02X ", KEYCODE[layouts.Layout1.Upper[i][j]])
+					if modifiers, err := strconv.ParseUint(layouts.Layout1.Upper[i][j][1], 2, 8); err == nil {
+						fmt.Printf("{0x%02X, 0x%02X} ", KEYCODE[layouts.Layout1.Upper[i][j][0]], modifiers)
+					}
 				}
 			}
 			fmt.Println("]")
@@ -259,12 +282,14 @@ func remap(inputfile string) {
 		for i := 0; i < 2; i++ {
 			fmt.Print("[ ")
 			for j := 0; j < 4; j++ {
-				if KEYCODE[layouts.Layout1.Stick[i][j]] == 0x00 {
+				if KEYCODE[layouts.Layout1.Stick[i][j][0]] == 0x00 {
 					if err := hid.Exit(); err != nil {
 						log.Fatal(err)
 					}
 				} else {
-					fmt.Printf("0x%02X ", KEYCODE[layouts.Layout1.Stick[i][j]])
+					if modifiers, err := strconv.ParseUint(layouts.Layout1.Stick[i][j][1], 2, 8); err == nil {
+						fmt.Printf("{0x%02X, 0x%02X} ", KEYCODE[layouts.Layout1.Stick[i][j][0]], modifiers)
+					}
 				}
 			}
 			fmt.Println("]")
@@ -289,7 +314,9 @@ func remap(inputfile string) {
 	for i := 0; i < maxRows; i++ {
 		fmt.Print("[ ")
 		for j := 0; j < maxColumns; j++ {
-			fmt.Printf("0x%02X ", KEYCODE[layouts.Layout2.Normal[i][j]])
+			if modifiers, err := strconv.ParseUint(layouts.Layout2.Normal[i][j][1], 2, 8); err == nil {
+				fmt.Printf("{0x%02X, 0x%02X} ", KEYCODE[layouts.Layout2.Normal[i][j][0]], modifiers)
+			}
 		}
 		fmt.Println("]")
 	}
@@ -301,7 +328,9 @@ func remap(inputfile string) {
 		for i := 0; i < maxRows; i++ {
 			fmt.Print("[ ")
 			for j := 0; j < maxColumns; j++ {
-				fmt.Printf("0x%02X ", KEYCODE[layouts.Layout2.Upper[i][j]])
+				if modifiers, err := strconv.ParseUint(layouts.Layout2.Upper[i][j][1], 2, 8); err == nil {
+					fmt.Printf("{0x%02X, 0x%02X} ", KEYCODE[layouts.Layout2.Upper[i][j][0]], modifiers)
+				}
 			}
 			fmt.Println("]")
 		}
@@ -314,7 +343,9 @@ func remap(inputfile string) {
 		for i := 0; i < 2; i++ {
 			fmt.Print("[ ")
 			for j := 0; j < 4; j++ {
-				fmt.Printf("0x%02X ", KEYCODE[layouts.Layout2.Stick[i][j]])
+				if modifiers, err := strconv.ParseUint(layouts.Layout2.Stick[i][j][1], 2, 8); err == nil {
+					fmt.Printf("{0x%02X, 0x%02X} ", KEYCODE[layouts.Layout2.Stick[i][j][0]], modifiers)
+				}
 			}
 			fmt.Println("]")
 		}
