@@ -7,7 +7,7 @@ Command line tool to change the keyboard settings of "[C4NDY KeyVLM and STK](htt
 The `go install` is available.
 
 ```shellscript
-$ go install github.com/yamamo2shun1/Confiseur/cmd/confiseur@v0.10.0
+$ go install github.com/yamamo2shun1/Confiseur/cmd/confiseur@v0.12.0
 ```
 
 ## How to use
