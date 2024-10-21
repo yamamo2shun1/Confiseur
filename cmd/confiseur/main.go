@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"log"
 	"os"
 	"strconv"
@@ -20,13 +21,14 @@ type Layouts struct {
 }
 
 type Layout struct {
-	Normal [][][]string `toml:"normal"`
-	Upper  [][][]string `toml:"upper"`
-	Stick  [][][]string `toml:"stick"`
-	Led    [][]byte     `toml:"led"`
+	Normal    [][][]string `toml:"normal"`
+	Upper     [][][]string `toml:"upper"`
+	Stick     [][][]string `toml:"stick"`
+	Led       [][]byte     `toml:"led"`
+	Intensity []float64    `toml:"intensity"`
 }
 
-const VERSION = "v0.11.0"
+const VERSION = "v0.12.0"
 
 var err error
 var hidDevices []*hid.Device
@@ -124,6 +126,9 @@ func loadKeymap(index int, val byte) {
 		if (val == 0x14 || val == 0x1C) && i > 2 {
 			continue
 		}
+		if (val == 0x15 || val == 0x1D) && i > 0 {
+			continue
+		}
 		remapRows[0] = 0x00
 		remapRows[1] = 0xF0 + byte(i)
 		remapRows[2] = val
@@ -145,9 +150,15 @@ func loadKeymap(index int, val byte) {
 			if (val == 0x14 || val == 0x1C) && j > 2 {
 				continue
 			}
+			if (val == 0x15 || val == 0x1D) && j > 0 {
+				continue
+			}
 
 			if val == 0x14 || val == 0x1C {
 				fmt.Fprintf(w, "%02X\t", remapRows[j])
+			} else if val == 0x15 || val == 0x1D {
+				rate, _ := decimal.NewFromFloat(float64(remapRows[j]) / 255.0).Round(2).Float64()
+				fmt.Fprintf(w, "%f\t", rate)
 			} else {
 				fmt.Fprintf(w, "{%s, %02X}\t", KEYNAME[remapRows[2*j]], remapRows[2*j+1])
 			}
@@ -168,6 +179,9 @@ func writeKeymap(index int, val byte) {
 		if (val == 0x04 || val == 0x0C) && i > 2 {
 			continue
 		}
+		if (val == 0x05 || val == 0x0D) && i > 0 {
+			continue
+		}
 
 		remapRows[0] = 0x00
 		remapRows[1] = 0xF0 + byte(i)
@@ -177,6 +191,9 @@ func writeKeymap(index int, val byte) {
 				continue
 			}
 			if (val == 0x04 || val == 0x0C) && j > 2 {
+				continue
+			}
+			if (val == 0x05 || val == 0x0D) && j > 0 {
 				continue
 			}
 
@@ -198,6 +215,8 @@ func writeKeymap(index int, val byte) {
 				}
 			case 0x04:
 				remapRows[j+3] = layouts.Layout1.Led[i][j]
+			case 0x05:
+				remapRows[j+3] = byte(layouts.Layout1.Intensity[j] * 255)
 			case 0x09:
 				remapRows[(2*j)+3] = KEYCODE[layouts.Layout2.Normal[i][j][0]]
 				if modifiers, err := strconv.ParseUint(layouts.Layout2.Normal[i][j][1], 2, 8); err == nil {
@@ -215,6 +234,8 @@ func writeKeymap(index int, val byte) {
 				}
 			case 0x0C:
 				remapRows[j+3] = layouts.Layout2.Led[i][j]
+			case 0x0D:
+				remapRows[j+3] = byte(layouts.Layout2.Intensity[j] * 255)
 			}
 		}
 
@@ -305,6 +326,11 @@ func remap(inputfile string) {
 			fmt.Println("]")
 		}
 	}
+	if len(layouts.Layout1.Intensity) != 0 {
+		fmt.Println("  Intensity ->")
+		fmt.Printf("%f", layouts.Layout1.Intensity)
+		fmt.Println("]")
+	}
 	fmt.Println("")
 	fmt.Println("::Layout2::")
 	fmt.Println("  Normal ->")
@@ -360,6 +386,11 @@ func remap(inputfile string) {
 			fmt.Println("]")
 		}
 	}
+	if len(layouts.Layout2.Intensity) != 0 {
+		fmt.Println("  Intensity ->")
+		fmt.Printf("%f", layouts.Layout2.Intensity)
+		fmt.Println("]")
+	}
 	fmt.Println("")
 }
 
@@ -408,9 +439,20 @@ func checkLEDColor(index int, value int) {
 	time.Sleep(100 * time.Millisecond)
 }
 
-func factoryReset(index int) {
+func changeLEDIntensity(index int, value float64) {
 	remapRows[0] = 0x00
 	remapRows[1] = 0xF8
+	remapRows[2] = byte(value * 255)
+
+	if _, err := hidDevices[index].Write(remapRows); err != nil {
+		log.Fatal(err)
+	}
+	time.Sleep(100 * time.Millisecond)
+}
+
+func factoryReset(index int) {
+	remapRows[0] = 0x00
+	remapRows[1] = 0xF9
 	if _, err := hidDevices[index].Write(remapRows); err != nil {
 		log.Fatal(err)
 	}
@@ -433,6 +475,7 @@ func main() {
 	saveFlag := flag.Bool("save", false, "Save the keymap written by \"-remap\" to the memory area.")
 	restartFlag := flag.Bool("restart", false, "Restart the keyboard immediately.")
 	ledColor := flag.Int("led", -1, "Set LED RGB value for checking color.")
+	ledIntensity := flag.Float64("intensity", -1.0, "Set LED intensity.")
 	factoryresetFlag := flag.Bool("factoryreset", false, "Reset all settings to factory defaults.")
 	verFlag := flag.Bool("version", false, "Show the version of the tool installed.")
 
@@ -478,6 +521,8 @@ func main() {
 				loadKeymap(*id, 0x13)
 				fmt.Println("  Led ->")
 				loadKeymap(*id, 0x14)
+				fmt.Println("  Intensity ->")
+				loadKeymap(*id, 0x15)
 			}
 			fmt.Println("")
 			fmt.Println("::Layout2::")
@@ -490,6 +535,8 @@ func main() {
 				loadKeymap(*id, 0x1B)
 				fmt.Println("  Led ->")
 				loadKeymap(*id, 0x1C)
+				fmt.Println("  Intensity ->")
+				loadKeymap(*id, 0x1D)
 			}
 			fmt.Println("")
 		} else if *saveFlag {
@@ -503,6 +550,8 @@ func main() {
 			fmt.Println("")
 		} else if *ledColor >= 0 && *ledColor <= 0xFFFFFF {
 			checkLEDColor(*id, *ledColor)
+		} else if *ledIntensity >= 0.0 && *ledIntensity <= 1.0 {
+			changeLEDIntensity(*id, *ledIntensity)
 		} else if *remapFile != "" {
 			if _, err := os.Stat(*remapFile); os.IsNotExist(err) {
 				fmt.Printf("::ERROR:: \"%s\" is not existed.\n", *remapFile)
@@ -518,12 +567,14 @@ func main() {
 				writeKeymap(*id, 0x02)
 				writeKeymap(*id, 0x03)
 				writeKeymap(*id, 0x04)
+				writeKeymap(*id, 0x05)
 			}
 			writeKeymap(*id, 0x09)
 			if isStk {
 				writeKeymap(*id, 0x0A)
 				writeKeymap(*id, 0x0B)
 				writeKeymap(*id, 0x0C)
+				writeKeymap(*id, 0x0D)
 			}
 			fmt.Println("")
 		}
