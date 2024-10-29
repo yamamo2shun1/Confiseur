@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/shopspring/decimal"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
+
+	"github.com/shopspring/decimal"
 
 	"github.com/BurntSushi/toml"
 	"github.com/sstallion/go-hid"
@@ -28,7 +29,7 @@ type Layout struct {
 	Intensity []float64    `toml:"intensity"`
 }
 
-const VERSION = "v0.12.0"
+const VERSION = "v0.13.0"
 
 var err error
 var hidDevices []*hid.Device

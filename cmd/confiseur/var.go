@@ -1,6 +1,6 @@
 package main
 
-var KEY_LIST [101]string = [101]string{
+var KEY_LIST [103]string = [103]string{
 	"A",           // a
 	"B",           // b
 	"C",           // c
@@ -96,6 +96,8 @@ var KEY_LIST [101]string = [101]string{
 	"M_RBTN",      // Mouse Right Button
 	"M_WHEEL",     // Mouse Wheel
 	"Reset",       // Reset
+	"XF_CUT1",     // XFader Cut Ch.1(Phono/Line In)
+	"XF_CUT2",     // XFader Cut Ch.2(USB)
 	"MGain_Up",    // Master Gain Up
 	"MGain_Down",  // Master Gain Down
 	"Upper",       // Upper
@@ -199,7 +201,9 @@ var KEYCODE = map[string]byte{
 	"M_LBTN":      0xF0, // Mouse Left Button
 	"M_RBTN":      0xF1, // Mouse Right Button
 	"M_WHEEL":     0xF2, // Mouse Wheel
-	"Reset":       0xF9, // Reset
+	"Reset":       0xF7, // Reset
+	"XF_CUT1":     0xF8, // XFader Cut Ch.1(Phono/Line In)
+	"XF_CUT2":     0xF9, // XFader Cut Ch.2(USB)
 	"MGain_Up":    0xFA, // Master Gain Up
 	"MGain_Down":  0xFB, // Master Gain Down
 	"Upper":       0xFC, // Upper

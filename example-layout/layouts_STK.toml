@@ -93,11 +93,11 @@
 # "M_RBTN",      // Mouse Right Button
 # "M_WHEEL",     // Mouse Wheel
 # "Reset",       // Reset
+# "XF_CUT1",     // XFader Cut Ch.1(Phono/Line)
+# "XF_CUT2",     // XFader Cut Ch.2(USB)
 # "MGain_Up",    // Master Gain Up
 # "MGain_Down",  // Master Gain Down
 # "Upper",       // Upper
-# "MGain_Up",    // Master Gain Up
-# "MGain_Down",  // Master Gain Down
 # "Null"
 
 # ["keycode", "modifiers"]
