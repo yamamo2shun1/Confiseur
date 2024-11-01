@@ -29,7 +29,7 @@ type Layout struct {
 	Intensity []float64    `toml:"intensity"`
 }
 
-const VERSION = "v0.13.0"
+const VERSION = "v0.14.0"
 
 var err error
 var hidDevices []*hid.Device
@@ -44,13 +44,16 @@ var isStk = false
 func getSettingPaths() []string {
 	path := []string{}
 
-	hid.Enumerate(hid.VendorIDAny, hid.ProductIDAny, func(info *hid.DeviceInfo) error {
+	err := hid.Enumerate(hid.VendorIDAny, hid.ProductIDAny, func(info *hid.DeviceInfo) error {
 		if strings.Contains(info.ProductStr, "C4NDY") && info.Usage == 1 {
 			path = append(path, info.Path)
 		}
 		//fmt.Printf("ProductStr: %s/Usage: %d\n", info.ProductStr, info.Usage)
 		return nil
 	})
+	if err != nil {
+		return nil
+	}
 
 	return path
 }
@@ -143,9 +146,12 @@ func loadKeymap(index int, val byte) {
 		}
 		time.Sleep(100 * time.Millisecond)
 
-		fmt.Fprint(w, "[\t")
+		_, err := fmt.Fprint(w, "[\t")
+		if err != nil {
+			return
+		}
 		for j := 0; j < maxColumns; j++ {
-			if (val == 0x13 || val == 0x1B) && j > 3 {
+			if (val == 0x13 || val == 0x1B) && j > 8 {
 				continue
 			}
 			if (val == 0x14 || val == 0x1C) && j > 2 {
@@ -156,17 +162,32 @@ func loadKeymap(index int, val byte) {
 			}
 
 			if val == 0x14 || val == 0x1C {
-				fmt.Fprintf(w, "%02X\t", remapRows[j])
+				_, err := fmt.Fprintf(w, "%02X\t", remapRows[j])
+				if err != nil {
+					return
+				}
 			} else if val == 0x15 || val == 0x1D {
 				rate, _ := decimal.NewFromFloat(float64(remapRows[j]) / 255.0).Round(2).Float64()
-				fmt.Fprintf(w, "%f\t", rate)
+				_, err := fmt.Fprintf(w, "%f\t", rate)
+				if err != nil {
+					return
+				}
 			} else {
-				fmt.Fprintf(w, "{%s, %02X}\t", KEYNAME[remapRows[2*j]], remapRows[2*j+1])
+				_, err := fmt.Fprintf(w, "{%s, %02X}\t", KEYNAME[remapRows[2*j]], remapRows[2*j+1])
+				if err != nil {
+					return
+				}
 			}
 		}
-		fmt.Fprintln(w, "]\t")
+		_, err = fmt.Fprintln(w, "]\t")
+		if err != nil {
+			return
+		}
 	}
-	w.Flush()
+	err := w.Flush()
+	if err != nil {
+		return
+	}
 }
 
 func writeKeymap(index int, val byte) {
@@ -188,7 +209,7 @@ func writeKeymap(index int, val byte) {
 		remapRows[1] = 0xF0 + byte(i)
 		remapRows[2] = val
 		for j := 0; j < maxColumns; j++ {
-			if (val == 0x03 || val == 0x0B) && j > 3 {
+			if (val == 0x03 || val == 0x0B) && j > 8 {
 				continue
 			}
 			if (val == 0x04 || val == 0x0C) && j > 2 {
@@ -303,7 +324,7 @@ func remap(inputfile string) {
 		}
 		for i := 0; i < 2; i++ {
 			fmt.Print("[ ")
-			for j := 0; j < 4; j++ {
+			for j := 0; j < 9; j++ {
 				if KEYCODE[layouts.Layout1.Stick[i][j][0]] == 0x00 {
 					if err := hid.Exit(); err != nil {
 						log.Fatal(err)
@@ -369,7 +390,7 @@ func remap(inputfile string) {
 		}
 		for i := 0; i < 2; i++ {
 			fmt.Print("[ ")
-			for j := 0; j < 4; j++ {
+			for j := 0; j < 9; j++ {
 				if modifiers, err := strconv.ParseUint(layouts.Layout2.Stick[i][j][1], 2, 8); err == nil {
 					fmt.Printf("{0x%02X, 0x%02X} ", KEYCODE[layouts.Layout2.Stick[i][j][0]], modifiers)
 				}
