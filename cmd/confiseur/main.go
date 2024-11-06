@@ -42,7 +42,7 @@ var maxColumns = 13
 var isStk = false
 
 func getSettingPaths() []string {
-	path := []string{}
+	var path []string
 
 	err := hid.Enumerate(hid.VendorIDAny, hid.ProductIDAny, func(info *hid.DeviceInfo) error {
 		if strings.Contains(info.ProductStr, "C4NDY") && info.Usage == 1 {
@@ -59,7 +59,7 @@ func getSettingPaths() []string {
 }
 
 func getConnectedDeviceList() []string {
-	deviceList := []string{}
+	var deviceList []string
 
 	for _, device := range hidDevices {
 		deviceName, _ := device.GetProductStr()
